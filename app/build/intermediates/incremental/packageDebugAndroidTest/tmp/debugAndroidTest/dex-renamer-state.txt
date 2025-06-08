@@ -1,0 +1,7 @@
+#Sat Jun 07 16:58:48 PDT 2025
+base.0=/home/steve/AndroidStudioProjects/songplayer/app/build/intermediates/dex/debugAndroidTest/mergeProjectDexDebugAndroidTest/0/classes.dex
+base.1=/home/steve/AndroidStudioProjects/songplayer/app/build/intermediates/dex/debugAndroidTest/mergeProjectDexDebugAndroidTest/9/classes.dex
+path.0=0/classes.dex
+path.1=9/classes.dex
+renamed.0=classes.dex
+renamed.1=classes2.dex

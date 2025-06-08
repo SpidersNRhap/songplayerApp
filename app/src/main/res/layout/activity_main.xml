@@ -1,0 +1,205 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="#222"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Background album art -->
+    <ImageView
+        android:id="@+id/backgroundImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:alpha="0.25"
+        android:visibility="gone" />
+
+    <!-- All your existing UI goes here -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Song title at the very top -->
+        <TextView
+            android:id="@+id/songTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Song Title"
+            android:textColor="#fff"
+            android:textSize="24sp"
+            android:layout_marginBottom="8dp" 
+            android:paddingTop="32dp"/>
+
+
+        <!-- Song metadata -->
+        <TextView
+            android:id="@+id/songMeta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#bbb"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Status text (optional, can be moved below search bar or removed) -->
+
+
+        <!-- Search bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="@drawable/rounded_search_bg"
+            android:layout_marginTop="8dp">
+
+            <EditText
+                android:id="@+id/searchBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Search songs or playlists"
+                android:background="@android:color/transparent"
+                android:padding="8dp"
+                android:textColor="#fff"
+                android:textColorHint="#888"
+                android:inputType="text"
+                android:singleLine="true"/>
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/playlistList"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:background="@drawable/rounded_playlist_bg"
+            android:layout_marginTop="8dp"
+            android:padding="4dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/songList"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/dark_card_bg"
+            android:layout_marginTop="8dp"
+            android:padding="4dp"/>
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/playlistSongsList"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/dark_card_bg"
+            android:layout_marginTop="8dp"
+            android:padding="4dp"/>
+
+
+        <!-- Only keep this bottom player bar for controls -->
+        <LinearLayout
+            android:id="@+id/playerBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/rounded_controls_bg"
+            android:padding="8dp"
+            android:layout_marginTop="8dp">
+
+
+            <SeekBar
+                android:id="@+id/progressBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progress="0"
+                android:max="100"
+                android:layout_marginBottom="4dp"
+                android:layout_marginTop="4dp"
+                android:thumbTint="#fff"
+                android:progressTint="#fff" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical|center_horizontal">
+
+                <ImageButton
+                    android:id="@+id/shuffleButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_shuffle_24"
+                    android:contentDescription="Shuffle"
+                    android:tint="#888" />
+
+                <ImageButton
+                    android:id="@+id/prevButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Previous"
+                    android:src="@drawable/ic_skip_previous_24"
+                    android:tint="#fff" />
+
+                <ImageButton
+                    android:id="@+id/pauseButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Pause"
+                    android:src="@drawable/ic_pause_24"
+                    android:tint="#fff" />
+
+                <ImageButton
+                    android:id="@+id/nextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_skip_next_24"
+                    android:contentDescription="Next"
+                    android:tint="#fff" />
+
+                <ImageButton
+                    android:id="@+id/loopButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_repeat_24"
+                    android:contentDescription="Loop"
+                    android:tint="#888" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="2dp">
+
+                <TextView
+                    android:id="@+id/currentTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0:00"
+                    android:textColor="#fff"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/totalTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0:00"
+                    android:textColor="#fff"
+                    android:textSize="12sp"
+                    android:layout_gravity="end"
+                    android:layout_weight="1"
+                    android:gravity="end" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+</FrameLayout>

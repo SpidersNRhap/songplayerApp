@@ -1,0 +1,150 @@
+[
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_rounded_playlist_bg.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/rounded_playlist_bg.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_music_note.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_music_note.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-xxxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/layout_item_playlist_song.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/layout/item_playlist_song.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-mdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_skip_next_24.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_skip_next_24.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-hdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/layout_item_song.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/layout/item_song.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-hdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_launcher_background.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_skip_previous_24.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_skip_previous_24.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-mdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_rounded_search_bg.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/rounded_search_bg.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/layout_activity_main.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_default_art.png.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/default_art.png"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_folder_open.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_folder_open.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_rounded_controls_bg.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/rounded_controls_bg.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-xxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-xhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-xhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_shuffle_24.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_shuffle_24.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_baseline_play_arrow_24.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/baseline_play_arrow_24.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_folder_closed.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_folder_closed.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/layout_notification_custom.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/layout/notification_custom.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_repeat_24.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_repeat_24.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-xxxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-anydpi-v26_ic_transparent.png.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-anydpi-v26/ic_transparent.png"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/xml_network_security_config.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/xml/network_security_config.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/mipmap-xxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.example.songplayer.app-debug-22:/layout_activity_main.xml.flat",
+        "source": "com.example.songplayer.app-main-24:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_song.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_song.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable-anydpi-v24_ic_launcher_foreground.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-pngs-18:/drawable-anydpi-v24/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_dark_card_bg.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/dark_card_bg.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/layout_item_playlist.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/layout/item_playlist.xml"
+    },
+    {
+        "merged": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-debug-22:/drawable_ic_pause_24.xml.flat",
+        "source": "/home/steve/.gradle/daemon/8.11.1/com.example.songplayer.app-main-24:/drawable/ic_pause_24.xml"
+    }
+]

@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Song Player</string>
+    <string name="welcome_message">Welcome to the Song Player App</string>
+    <string name="fetching_token">Fetching token...</string>
+    <string name="token_error">Error fetching token. Please try again.</string>
+    <string name="song_list">Song List</string>
+    <string name="play_button">Play</string>
+    <string name="pause_button">Pause</string>
+    <string name="stop_button">Stop</string>
+    <string name="no_songs_available">No songs available.</string>
+</resources>

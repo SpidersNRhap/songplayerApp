@@ -1,0 +1,12 @@
+<resources>
+    <style name="Theme.SongPlayer" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <item name="android:windowBackground">#222</item>
+        <item name="android:textColor">#fff</item>
+        <item name="android:colorBackground">#222</item>
+        <item name="android:colorPrimary">#333</item>
+        <item name="android:colorAccent">#ff4081</item>
+    </style>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+    </style>
+</resources>
