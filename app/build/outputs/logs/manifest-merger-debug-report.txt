@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-36:12
-INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-36:12
-INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-36:12
-INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-36:12
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-37:12
+INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-37:12
+INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-37:12
+INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-37:12
 MERGED from [com.google.android.material:material:1.4.0] /home/steve/.gradle/caches/8.11.1/transforms/a86c860001760ef6da3818b273ca5801/transformed/material-1.4.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/steve/.gradle/caches/8.11.1/transforms/de5f658ca10f5455beff38a34d32d267/transformed/constraintlayout-2.0.1/AndroidManifest.xml:2:1-11:12
 MERGED from [androidx.appcompat:appcompat:1.3.1] /home/steve/.gradle/caches/8.11.1/transforms/e30a81639ab2f1e637dd831fd7d49f92/transformed/appcompat-1.3.1/AndroidManifest.xml:17:1-24:12
@@ -63,8 +63,8 @@ ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidMani
 	android:name
 		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:5:22-89
 application
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:6:5-34:19
-INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:6:5-34:19
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:6:5-35:19
+INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:6:5-35:19
 MERGED from [com.google.android.material:material:1.4.0] /home/steve/.gradle/caches/8.11.1/transforms/a86c860001760ef6da3818b273ca5801/transformed/material-1.4.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.4.0] /home/steve/.gradle/caches/8.11.1/transforms/a86c860001760ef6da3818b273ca5801/transformed/material-1.4.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/steve/.gradle/caches/8.11.1/transforms/de5f658ca10f5455beff38a34d32d267/transformed/constraintlayout-2.0.1/AndroidManifest.xml:9:5-20
@@ -75,6 +75,8 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/steve
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/steve/.gradle/caches/8.11.1/transforms/bb9c9df7b6f73016e4b5cad56160a631/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 	android:extractNativeLibs
 		INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml
+	android:attributionTags
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:14:9-39
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.12.0] /home/steve/.gradle/caches/8.11.1/transforms/5a22f43937dfc6c87bae6e965cb18374/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
 	android:supportsRtl
@@ -92,43 +94,43 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/steve
 	android:networkSecurityConfig
 		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:13:9-69
 activity#com.example.songplayer.MainActivity
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:14:9-22:20
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:15:9-23:20
 	android:launchMode
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:16:13-43
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:17:13-43
 	android:exported
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:17:13-36
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:18:13-36
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:15:13-41
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:16:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:18:13-21:29
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:19:13-22:29
 action#android.intent.action.MAIN
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:19:17-69
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:20:17-69
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:19:25-66
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:20:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:20:17-77
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:17-77
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:20:27-74
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:27-74
 receiver#androidx.media.session.MediaButtonReceiver
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:23:9-29:20
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:24:9-30:20
 	android:exported
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:25:13-36
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:26:13-36
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:24:13-70
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:25:13-70
 intent-filter#action:name:android.intent.action.MEDIA_BUTTON
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:26:13-28:29
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:27:13-29:29
 action#android.intent.action.MEDIA_BUTTON
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:27:17-77
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:28:17-77
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:27:25-74
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:28:25-74
 service#com.example.songplayer.MusicService
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:30:9-33:61
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:31:9-34:61
 	android:exported
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:32:13-37
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:33:13-37
 	android:foregroundServiceType
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:33:13-58
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:34:13-58
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:31:13-41
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:32:13-41
 uses-sdk
 INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml

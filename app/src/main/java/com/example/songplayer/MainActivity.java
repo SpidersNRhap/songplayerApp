@@ -127,6 +127,15 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
+
+                @Override
+                public void onPlaybackError(int index, String url, int what, int extra) {
+                    // If error is likely due to token expiry, fetch a new token and retry
+                    runOnUiThread(() -> {
+                        Log.e("SongPlayerDBG", "Playback error: what=" + what + ", extra=" + extra);
+                        fetchTokenAndPlay(currentPlaylist.get(index).path);
+                    });
+                }
             });
             // If there was a pending playSong, call it now
             if (pendingSongPath != null && pendingToken != null) {

@@ -253,6 +253,20 @@ public class MusicService extends Service {
                     updateNotification();
                 }
             });
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                Log.e("SongPlayerDBG", "MediaPlayer error: what=" + what + ", extra=" + extra);
+                if (playbackListener != null) {
+                    playbackListener.onPlaybackError(currentIndex, playlist != null ? playlist.get(currentIndex) : null, what, extra);
+                }
+                stop();
+                mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                    .setActions(getAvailableActions())
+                    .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
+                    .build());
+                updateNotification();
+                stopForeground(false);
+                return true; // handled
+            });
             mediaPlayer.prepareAsync();
         } catch (Exception e) {
             stop();
@@ -421,7 +435,7 @@ public class MusicService extends Service {
         void onPlaybackStarted();
         void onPlaybackPaused();
         void onTrackChanged(int newIndex, String songTitle);
-
+        void onPlaybackError(int index, String url, int what, int extra); // <-- add this
     }
 
     private Bitmap getAlbumArt(String url) {
