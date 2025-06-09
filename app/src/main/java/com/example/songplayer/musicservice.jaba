@@ -43,8 +43,6 @@ public class MusicService extends Service {
     private Bitmap currentAlbumArt = null;
     private Bitmap defaultAlbumArt;
 
-    private String publicIp, port, apiKey, token;
-
     public class LocalBinder extends Binder {
         public MusicService getService() { return MusicService.this; }
     }
@@ -94,18 +92,6 @@ public class MusicService extends Service {
         if (playlistStr != null) {
             playlist = java.util.Arrays.asList(playlistStr.split(";;"));
         }
-
-        // Fetch token on service startup
-        // fetchToken(new TokenCallback() {
-        //     @Override
-        //     public void onTokenReceived(String token) {
-        //         Log.d("SongPlayerDBG", "Token fetched on service start: " + token);
-        //     }
-        //     @Override
-        //     public void onTokenError(Exception e) {
-        //         Log.e("SongPlayerDBG", "Token fetch error on service start", e);
-        //     }
-        // });
     }
 
     @Override
@@ -268,7 +254,10 @@ public class MusicService extends Service {
                 }
             });
             mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-                Log.e("SongPlayerDBG", "MediaPlayer error: " + what + ", " + extra);
+                Log.e("SongPlayerDBG", "MediaPlayer error: what=" + what + ", extra=" + extra);
+                if (playbackListener != null) {
+                    playbackListener.onPlaybackError(currentIndex, playlist != null ? playlist.get(currentIndex) : null, what, extra);
+                }
                 stop();
                 mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
                     .setActions(getAvailableActions())
@@ -276,8 +265,7 @@ public class MusicService extends Service {
                     .build());
                 updateNotification();
                 stopForeground(false);
-                if (playbackListener != null) playbackListener.onPlaybackPaused();
-                return true;
+                return true; // handled
             });
             mediaPlayer.prepareAsync();
         } catch (Exception e) {
@@ -300,6 +288,7 @@ public class MusicService extends Service {
     }
 
     private int getNextIndex() {
+        System.out.println("getNextIndex() called, currentIndex=" + currentIndex + ", isShuffle=" + isShuffle + ", isLoop=" + isLoop);
         if (playlist == null || playlist.isEmpty()) return -1;
         if (isShuffle) {
             if (playlist.size() == 1) return currentIndex;
@@ -369,7 +358,10 @@ public class MusicService extends Service {
 
     public void stop() {
         if (mediaPlayer != null) {
-            mediaPlayer.release();
+            try {
+                mediaPlayer.reset();
+                mediaPlayer.release();
+            } catch (Exception ignored) {}
             mediaPlayer = null;
         }
     }
@@ -443,99 +435,11 @@ public class MusicService extends Service {
         editor.apply();
     }
 
-    public void setServerConfig(String publicIp, String port, String apiKey) {
-        this.publicIp = publicIp;
-        this.port = port;
-        this.apiKey = apiKey;
-
-        // Fetch token now that config is set
-        fetchToken(new TokenCallback() {
-            @Override
-            public void onTokenReceived(String token) {
-                Log.d("SongPlayerDBG", "Token fetched after config: " + token);
-            }
-            @Override
-            public void onTokenError(Exception e) {
-                Log.e("SongPlayerDBG", "Token fetch error after config", e);
-            }
-        });
-    }
-
-    public void playSongByPath(List<SongNode> playlistNodes, int index, boolean shuffle, boolean loop, PlaySongCallback callback) {
-        fetchToken(new TokenCallback() {
-            @Override
-            public void onTokenReceived(String token) {
-                List<String> playlistUrls = new java.util.ArrayList<>();
-                for (SongNode node : playlistNodes) {
-                    String nodePath = node.path;
-                    int lastSlash = nodePath.lastIndexOf('/');
-                    String url;
-                    try {
-                        if (lastSlash != -1) {
-                            String folder = java.net.URLEncoder.encode(nodePath.substring(0, lastSlash), "UTF-8").replace("+", "%20");
-                            String filename = java.net.URLEncoder.encode(nodePath.substring(lastSlash + 1), "UTF-8").replace("+", "%20");
-                            url = "https://" + publicIp + ":" + port + "/stream/" + folder + "/" + filename + "?token=" + token;
-                        } else {
-                            String filename = java.net.URLEncoder.encode(nodePath, "UTF-8").replace("+", "%20");
-                            url = "https://" + publicIp + ":" + port + "/stream/" + filename + "?token=" + token;
-                        }
-                    } catch (Exception e) {
-                        url = "";
-                    }
-                    playlistUrls.add(url);
-                }
-                setPlaylistWithArt(playlistUrls, index, shuffle, loop, null);
-                if (callback != null) callback.onPlayStarted(playlistUrls.get(index));
-            }
-            @Override
-            public void onTokenError(Exception e) {
-                Log.e("SongPlayerDBG", "Token fetch error", e); // Add this line
-                if (callback != null) callback.onPlayError(e);
-            }
-        });
-    }
-
-    // Token fetcher
-    public void fetchToken(TokenCallback callback) {
-        new Thread(() -> {
-            try {
-                okhttp3.OkHttpClient client = MainActivity.getUnsafeOkHttpClientStatic();
-                String tokenUrl = "https://" + publicIp + ":" + port + "/token?apiKey=" + apiKey;
-                okhttp3.Request request = new okhttp3.Request.Builder().url(tokenUrl).build();
-                okhttp3.Response response = client.newCall(request).execute();
-                String body = response.body() != null ? response.body().string() : "";
-                if (response.isSuccessful()) {
-                    com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
-                    token = json.get("token").getAsString();
-                    Log.d("SongPlayerDBG", "Fetched token: " + token); // Add this line
-                    callback.onTokenReceived(token);
-                    if (tokenListener != null) {
-                        tokenListener.onTokenUpdated(token);
-                    }
-                } else {
-                    callback.onTokenError(new Exception("Token error: HTTP " + response.code()));
-                }
-            } catch (Exception e) {
-                callback.onTokenError(e);
-            }
-        }).start();
-    }
-
-    // Callback interfaces
-    public interface TokenCallback {
-        void onTokenReceived(String token);
-        void onTokenError(Exception e);
-    }
-    public interface PlaySongCallback {
-        void onPlayStarted(String streamUrl);
-        void onPlayError(Exception e);
-    }
-
     public interface PlaybackListener {
         void onPlaybackStarted();
         void onPlaybackPaused();
         void onTrackChanged(int newIndex, String songTitle);
-
+        void onPlaybackError(int index, String url, int what, int extra); // <-- add this
     }
 
     private Bitmap getAlbumArt(String url) {
@@ -552,15 +456,5 @@ public class MusicService extends Service {
             }
         } catch (Exception ignored) {}
         return null;
-    }
-
-    public interface TokenListener {
-        void onTokenUpdated(String token);
-    }
-
-    private TokenListener tokenListener;
-
-    public void setTokenListener(TokenListener listener) {
-        this.tokenListener = listener;
     }
 }

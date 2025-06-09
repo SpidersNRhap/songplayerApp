@@ -34,9 +34,11 @@ import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.net.ssl.*;
 import android.view.View;
 import android.util.Log;
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     // UI Components
@@ -54,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private List<SongNode> allNodes;
     private List<String> playlistNames = new ArrayList<>();
     private Map<String, List<SongNode>> playlists = new HashMap<>();
+    private Future<?> currentMetadataTask;
     private int currentSongIndex = 0;
     private String currentSongPath = null;
     private String selectedPlaylistName = null;
@@ -104,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                         // Only update metadata text here
                         if (currentPlaylist != null && newIndex >= 0 && newIndex < currentPlaylist.size()) {
                             String songPath = currentPlaylist.get(newIndex).path;
-                            showSongMetadata(songPath);
+                            showSongMetadata(buildStreamUrl(songPath));
                         }
                         // Set background image
                         ImageView backgroundImage = findViewById(R.id.backgroundImage);
@@ -260,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override public void afterTextChanged(Editable s) {}
         });
-        searchBox.setOnEditorActionListener((v, actionId, event) -> {
+        searchBox.setOnEditorActionListener((v, actionId,  event) -> {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(searchBox.getWindowToken(), 0);
             return true;
@@ -391,23 +394,101 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // --- Metadata and Playlist Fetching ---
+    private String buildStreamUrl(String songPath) {
+        if (!songPath.startsWith("/")) songPath = "/" + songPath;
+        return "https://" + publicIp + ":" + port + "/stream" + songPath + "?token=" + token;
+    }
 
-    private void showSongMetadata(String songPath) {
-        backgroundExecutor.submit(() -> {
-            MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+    private void showSongMetadata(String url) {
+        Log.d("SongPlayerDBG", "showSongMetadata called with url: " + url);
+
+        if (currentMetadataTask != null && !currentMetadataTask.isDone()) {
+            currentMetadataTask.cancel(true);
+            Log.d("SongPlayerDBG", "Cancelled previous metadata task");
+        }
+
+        currentMetadataTask = backgroundExecutor.submit(() -> {
+            File tempFile = null;
             try {
-                mmr.setDataSource(songPath, new HashMap<>());
+                OkHttpClient client = getUnsafeOkHttpClient();
+                // Try partial download first
+                Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Range", "bytes=0-1048575")
+                    .build();
+                Log.d("SongPlayerDBG", "Requesting first 1MB for metadata: " + url);
+                Response response = client.newCall(request).execute();
+                Log.d("SongPlayerDBG", "Response code: " + response.code());
+                Log.d("SongPlayerDBG", "Content-Type: " + response.header("Content-Type"));
+                if (!response.isSuccessful()) {
+                    Log.e("SongPlayerDBG", "Failed to fetch file: HTTP " + response.code());
+                    runOnUiThread(() -> songMeta.setText(""));
+                    return;
+                }
+                tempFile = File.createTempFile("meta", ".mp3", getCacheDir());
+                try (java.io.InputStream in = response.body().byteStream();
+                     java.io.OutputStream out = new java.io.FileOutputStream(tempFile)) {
+                    byte[] buf = new byte[4096];
+                    int len;
+                    int total = 0;
+                    while ((len = in.read(buf)) != -1) {
+                        if (Thread.currentThread().isInterrupted()) return;
+                        out.write(buf, 0, len);
+                        total += len;
+                    }
+                    Log.d("SongPlayerDBG", "Downloaded " + total + " bytes for metadata extraction");
+                }
+                Log.d("SongPlayerDBG", "Temp file size: " + tempFile.length());
+                if (Thread.currentThread().isInterrupted()) return;
+
+                MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                try {
+                    mmr.setDataSource(tempFile.getAbsolutePath());
+                } catch (RuntimeException e) {
+                    Log.w("SongPlayerDBG", "Partial file failed, retrying with full file...");
+                    // Try full download
+                    tempFile.delete();
+                    tempFile = File.createTempFile("meta", ".mp3", getCacheDir());
+                    request = new Request.Builder().url(url).build();
+                    response = client.newCall(request).execute();
+                    if (!response.isSuccessful()) {
+                        Log.e("SongPlayerDBG", "Failed to fetch full file: HTTP " + response.code());
+                        runOnUiThread(() -> songMeta.setText(""));
+                        return;
+                    }
+                    try (java.io.InputStream in = response.body().byteStream();
+                         java.io.OutputStream out = new java.io.FileOutputStream(tempFile)) {
+                        byte[] buf = new byte[4096];
+                        int len;
+                        int total = 0;
+                        while ((len = in.read(buf)) != -1) {
+                            if (Thread.currentThread().isInterrupted()) return;
+                            out.write(buf, 0, len);
+                            total += len;
+                        }
+                        Log.d("SongPlayerDBG", "Downloaded " + total + " bytes for full metadata extraction");
+                    }
+                    mmr.setDataSource(tempFile.getAbsolutePath());
+                }
                 String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
                 String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+                String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                Log.d("SongPlayerDBG", "Extracted metadata - Title: " + title + ", Artist: " + artist + ", Album: " + album);
                 String info = "";
                 if (artist != null) info += "Artist: " + artist + "\n";
                 if (album != null) info += "Album: " + album + "\n";
+                if (title != null) info += "Title: " + title + "\n";
                 String finalInfo = info;
                 runOnUiThread(() -> songMeta.setText(finalInfo));
+                mmr.release();
             } catch (Exception e) {
+                Log.e("SongPlayerDBG", "Exception in showSongMetadata", e);
                 runOnUiThread(() -> songMeta.setText(""));
             } finally {
-                try { mmr.release(); } catch (Exception ignored) {}
+                if (tempFile != null) {
+                    boolean deleted = tempFile.delete();
+                    Log.d("SongPlayerDBG", "Temp file deleted: " + deleted);
+                }
             }
         });
     }

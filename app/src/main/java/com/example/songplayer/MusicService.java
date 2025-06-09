@@ -23,6 +23,7 @@ import androidx.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.media.MediaMetadataCompat;
+import android.media.MediaMetadataRetriever;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -38,6 +39,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Call;
+
+import java.io.File;
+
 
 public class MusicService extends Service {
     // Media and playback
@@ -555,7 +559,11 @@ public class MusicService extends Service {
         }
         try {
             android.media.MediaMetadataRetriever mmr = new android.media.MediaMetadataRetriever();
-            mmr.setDataSource(url, new java.util.HashMap<>());
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                mmr.setDataSource(url, new HashMap<>());
+            } else {
+                mmr.setDataSource(url);
+            }
             byte[] art = mmr.getEmbeddedPicture();
             mmr.release();
             if (art != null) {
@@ -565,8 +573,89 @@ public class MusicService extends Service {
                 albumArtCache.put(url, bitmap); // Cache it
                 return bitmap;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.e("SongPlayerDBG", "Metadata error for: " + url, e);
+        }
         albumArtCache.put(url, null); // Cache miss as null to avoid repeated attempts
         return null;
+    }
+    private Bitmap getAlbumArtFromRemote(String url) {
+        File tempFile = null;
+        try {
+            // Download the first 128KB (should be enough for metadata)
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Range", "bytes=0-131071")
+                .build();
+            Response response = client.newCall(request).execute();
+            if (!response.isSuccessful()) return null;
+
+            tempFile = File.createTempFile("meta", ".mp3", getCacheDir());
+            try (java.io.InputStream in = response.body().byteStream();
+                 java.io.OutputStream out = new java.io.FileOutputStream(tempFile)) {
+                byte[] buf = new byte[4096];
+                int len;
+                while ((len = in.read(buf)) != -1) out.write(buf, 0, len);
+            }
+
+            android.media.MediaMetadataRetriever mmr = new android.media.MediaMetadataRetriever();
+            mmr.setDataSource(tempFile.getAbsolutePath());
+            byte[] art = mmr.getEmbeddedPicture();
+            mmr.release();
+            if (art != null) {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                return BitmapFactory.decodeByteArray(art, 0, art.length, options);
+            }
+        } catch (Exception e) {
+            Log.e("SongPlayerDBG", "Metadata error for: " + url, e);
+        } finally {
+            if (tempFile != null) tempFile.delete();
+        }
+        return null;
+    }
+    private SongMetadata getSongMetadataFromRemote(String url) {
+        File tempFile = null;
+        try {
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Range", "bytes=0-131071")
+                .build();
+            Response response = client.newCall(request).execute();
+            if (!response.isSuccessful()) return null;
+
+            tempFile = File.createTempFile("meta", ".mp3", getCacheDir());
+            try (java.io.InputStream in = response.body().byteStream();
+                 java.io.OutputStream out = new java.io.FileOutputStream(tempFile)) {
+                byte[] buf = new byte[4096];
+                int len;
+                while ((len = in.read(buf)) != -1) out.write(buf, 0, len);
+            }
+
+            android.media.MediaMetadataRetriever mmr = new android.media.MediaMetadataRetriever();
+            mmr.setDataSource(tempFile.getAbsolutePath());
+            String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+            String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+            String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+            byte[] art = mmr.getEmbeddedPicture();
+            mmr.release();
+            return new SongMetadata(title, artist, album, art);
+        } catch (Exception e) {
+            Log.e("SongPlayerDBG", "Metadata error for: " + url, e);
+        } finally {
+            if (tempFile != null) tempFile.delete();
+        }
+        return null;
+    }
+
+    // Helper class
+    public static class SongMetadata {
+        public final String title, artist, album;
+        public final byte[] art;
+        public SongMetadata(String title, String artist, String album, byte[] art) {
+            this.title = title; this.artist = artist; this.album = album; this.art = art;
+        }
     }
 }
