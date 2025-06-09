@@ -1,13 +1,15 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-37:12
-INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-37:12
-INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-37:12
-INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-37:12
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-38:12
+INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-38:12
+INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-38:12
+INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:1:1-38:12
 MERGED from [com.google.android.material:material:1.4.0] /home/steve/.gradle/caches/8.11.1/transforms/a86c860001760ef6da3818b273ca5801/transformed/material-1.4.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/steve/.gradle/caches/8.11.1/transforms/de5f658ca10f5455beff38a34d32d267/transformed/constraintlayout-2.0.1/AndroidManifest.xml:2:1-11:12
 MERGED from [androidx.appcompat:appcompat:1.3.1] /home/steve/.gradle/caches/8.11.1/transforms/e30a81639ab2f1e637dd831fd7d49f92/transformed/appcompat-1.3.1/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.viewpager2:viewpager2:1.1.0-beta02] /home/steve/.gradle/caches/8.11.1/transforms/4f4721097a6ba1dc1193dabf294134b0/transformed/viewpager2-1.1.0-beta02/AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.exoplayer:exoplayer:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/57c905241b1a831c633244d1b87a0598/transformed/exoplayer-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-ui:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/7da306b29d20e99c351896b36f160629/transformed/exoplayer-ui-2.19.1/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.recyclerview:recyclerview:1.3.2] /home/steve/.gradle/caches/8.11.1/transforms/468352564f19ecfd19cf4f09c3734f19/transformed/recyclerview-1.3.2/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.media:media:1.6.0] /home/steve/.gradle/caches/8.11.1/transforms/a76756629bfbfadde4e05142ea4c74f8/transformed/media-1.6.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.fragment:fragment:1.3.6] /home/steve/.gradle/caches/8.11.1/transforms/63fcb7c79e867d6ba3c2e06521ba0854/transformed/fragment-1.3.6/AndroidManifest.xml:17:1-24:12
@@ -21,6 +23,11 @@ MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /home/steve/.grad
 MERGED from [androidx.transition:transition:1.2.0] /home/steve/.gradle/caches/8.11.1/transforms/1e0044a5d098b78f8afd44730a912447/transformed/transition-1.2.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /home/steve/.gradle/caches/8.11.1/transforms/b4b38e60d56d4dbdb9b7563567228896/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /home/steve/.gradle/caches/8.11.1/transforms/beabe955e962809f15cc84fe4eaba85f/transformed/vectordrawable-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-dash:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/2746f4fff14da4849c0ded0593b84556/transformed/exoplayer-dash-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-hls:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/de3a7eb0e7291c3647502207e90aeb41/transformed/exoplayer-hls-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-rtsp:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/839ce6607ba74e198c26344c839bba39/transformed/exoplayer-rtsp-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-smoothstreaming:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/b0e7f708b77fa9bf35d9c2328768d16b/transformed/exoplayer-smoothstreaming-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-core:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/fb296b7300eee57c929bc7720e5408fb/transformed/exoplayer-core-2.19.1/AndroidManifest.xml:17:1-26:12
 MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/d11e27e77a587ac25efc4fa32f39ce35/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.loader:loader:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/f4f565d8c8b6235a02241435e2be1a66/transformed/loader-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/83bce696633b7111072274f868712c2b/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:17:1-23:12
@@ -35,6 +42,12 @@ MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.3.1] /home/steve/.gradle/c
 MERGED from [androidx.cardview:cardview:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/749bf6dbd77c9593446769ce6c36a073/transformed/cardview-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/steve/.gradle/caches/8.11.1/transforms/bb9c9df7b6f73016e4b5cad56160a631/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
 MERGED from [androidx.interpolator:interpolator:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/4b61cf9167f1b88b897e5747bc951acf/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [com.google.android.exoplayer:exoplayer-datasource:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/cf748a4a955da31895b563db7a9af816/transformed/exoplayer-datasource-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-database:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/b7dfdaee8c46c651e5d8ad502d596496/transformed/exoplayer-database-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-extractor:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/5ab3efc4b1d33995a011dc317a455a17/transformed/exoplayer-extractor-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-decoder:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/3def4eea764430026aa623e65b002541/transformed/exoplayer-decoder-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-container:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/bcf8ccd3182a3ddc8f7a151e24a3ac75/transformed/exoplayer-container-2.19.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.android.exoplayer:exoplayer-common:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/ad39315cdebf3396e21ff9cc3f2ac0ee/transformed/exoplayer-common-2.19.1/AndroidManifest.xml:17:1-26:12
 MERGED from [androidx.tracing:tracing:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/2f126e0705602819c2a81cc13b28668e/transformed/tracing-1.0.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /home/steve/.gradle/caches/8.11.1/transforms/5fc7b1fc0fc99f25bd053ac9d3236eca/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.3.1] /home/steve/.gradle/caches/8.11.1/transforms/24e3b385d5fa759315ad0a007f8512f0/transformed/lifecycle-livedata-core-2.3.1/AndroidManifest.xml:17:1-24:12
@@ -63,8 +76,8 @@ ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidMani
 	android:name
 		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:5:22-89
 application
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:6:5-35:19
-INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:6:5-35:19
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:6:5-36:19
+INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:6:5-36:19
 MERGED from [com.google.android.material:material:1.4.0] /home/steve/.gradle/caches/8.11.1/transforms/a86c860001760ef6da3818b273ca5801/transformed/material-1.4.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.4.0] /home/steve/.gradle/caches/8.11.1/transforms/a86c860001760ef6da3818b273ca5801/transformed/material-1.4.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/steve/.gradle/caches/8.11.1/transforms/de5f658ca10f5455beff38a34d32d267/transformed/constraintlayout-2.0.1/AndroidManifest.xml:9:5-20
@@ -94,43 +107,45 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/steve
 	android:networkSecurityConfig
 		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:13:9-69
 activity#com.example.songplayer.MainActivity
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:15:9-23:20
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:15:9-24:20
 	android:launchMode
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:17:13-43
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:18:13-43
 	android:exported
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:18:13-36
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:19:13-36
+	android:theme
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:17:13-61
 	android:name
 		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:16:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:19:13-22:29
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:20:13-23:29
 action#android.intent.action.MAIN
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:20:17-69
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:17-69
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:20:25-66
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:17-77
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:22:17-77
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:27-74
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:22:27-74
 receiver#androidx.media.session.MediaButtonReceiver
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:24:9-30:20
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:25:9-31:20
 	android:exported
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:26:13-36
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:27:13-36
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:25:13-70
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:26:13-70
 intent-filter#action:name:android.intent.action.MEDIA_BUTTON
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:27:13-29:29
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:28:13-30:29
 action#android.intent.action.MEDIA_BUTTON
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:28:17-77
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:29:17-77
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:28:25-74
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:29:25-74
 service#com.example.songplayer.MusicService
-ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:31:9-34:61
+ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:32:9-35:61
 	android:exported
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:33:13-37
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:34:13-37
 	android:foregroundServiceType
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:34:13-58
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:35:13-58
 	android:name
-		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:32:13-41
+		ADDED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:33:13-41
 uses-sdk
 INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml
@@ -143,6 +158,10 @@ MERGED from [androidx.appcompat:appcompat:1.3.1] /home/steve/.gradle/caches/8.11
 MERGED from [androidx.appcompat:appcompat:1.3.1] /home/steve/.gradle/caches/8.11.1/transforms/e30a81639ab2f1e637dd831fd7d49f92/transformed/appcompat-1.3.1/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.viewpager2:viewpager2:1.1.0-beta02] /home/steve/.gradle/caches/8.11.1/transforms/4f4721097a6ba1dc1193dabf294134b0/transformed/viewpager2-1.1.0-beta02/AndroidManifest.xml:5:5-44
 MERGED from [androidx.viewpager2:viewpager2:1.1.0-beta02] /home/steve/.gradle/caches/8.11.1/transforms/4f4721097a6ba1dc1193dabf294134b0/transformed/viewpager2-1.1.0-beta02/AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.exoplayer:exoplayer:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/57c905241b1a831c633244d1b87a0598/transformed/exoplayer-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/57c905241b1a831c633244d1b87a0598/transformed/exoplayer-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-ui:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/7da306b29d20e99c351896b36f160629/transformed/exoplayer-ui-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-ui:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/7da306b29d20e99c351896b36f160629/transformed/exoplayer-ui-2.19.1/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.recyclerview:recyclerview:1.3.2] /home/steve/.gradle/caches/8.11.1/transforms/468352564f19ecfd19cf4f09c3734f19/transformed/recyclerview-1.3.2/AndroidManifest.xml:20:5-44
 MERGED from [androidx.recyclerview:recyclerview:1.3.2] /home/steve/.gradle/caches/8.11.1/transforms/468352564f19ecfd19cf4f09c3734f19/transformed/recyclerview-1.3.2/AndroidManifest.xml:20:5-44
 MERGED from [androidx.media:media:1.6.0] /home/steve/.gradle/caches/8.11.1/transforms/a76756629bfbfadde4e05142ea4c74f8/transformed/media-1.6.0/AndroidManifest.xml:20:5-22:41
@@ -169,6 +188,16 @@ MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /home/steve/
 MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /home/steve/.gradle/caches/8.11.1/transforms/b4b38e60d56d4dbdb9b7563567228896/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /home/steve/.gradle/caches/8.11.1/transforms/beabe955e962809f15cc84fe4eaba85f/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /home/steve/.gradle/caches/8.11.1/transforms/beabe955e962809f15cc84fe4eaba85f/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-dash:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/2746f4fff14da4849c0ded0593b84556/transformed/exoplayer-dash-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-dash:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/2746f4fff14da4849c0ded0593b84556/transformed/exoplayer-dash-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-hls:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/de3a7eb0e7291c3647502207e90aeb41/transformed/exoplayer-hls-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-hls:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/de3a7eb0e7291c3647502207e90aeb41/transformed/exoplayer-hls-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-rtsp:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/839ce6607ba74e198c26344c839bba39/transformed/exoplayer-rtsp-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-rtsp:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/839ce6607ba74e198c26344c839bba39/transformed/exoplayer-rtsp-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-smoothstreaming:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/b0e7f708b77fa9bf35d9c2328768d16b/transformed/exoplayer-smoothstreaming-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-smoothstreaming:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/b0e7f708b77fa9bf35d9c2328768d16b/transformed/exoplayer-smoothstreaming-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-core:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/fb296b7300eee57c929bc7720e5408fb/transformed/exoplayer-core-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-core:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/fb296b7300eee57c929bc7720e5408fb/transformed/exoplayer-core-2.19.1/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/d11e27e77a587ac25efc4fa32f39ce35/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/d11e27e77a587ac25efc4fa32f39ce35/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.loader:loader:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/f4f565d8c8b6235a02241435e2be1a66/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
@@ -197,6 +226,18 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/steve
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/steve/.gradle/caches/8.11.1/transforms/bb9c9df7b6f73016e4b5cad56160a631/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.interpolator:interpolator:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/4b61cf9167f1b88b897e5747bc951acf/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.interpolator:interpolator:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/4b61cf9167f1b88b897e5747bc951acf/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.exoplayer:exoplayer-datasource:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/cf748a4a955da31895b563db7a9af816/transformed/exoplayer-datasource-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-datasource:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/cf748a4a955da31895b563db7a9af816/transformed/exoplayer-datasource-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-database:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/b7dfdaee8c46c651e5d8ad502d596496/transformed/exoplayer-database-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-database:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/b7dfdaee8c46c651e5d8ad502d596496/transformed/exoplayer-database-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-extractor:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/5ab3efc4b1d33995a011dc317a455a17/transformed/exoplayer-extractor-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-extractor:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/5ab3efc4b1d33995a011dc317a455a17/transformed/exoplayer-extractor-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-decoder:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/3def4eea764430026aa623e65b002541/transformed/exoplayer-decoder-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-decoder:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/3def4eea764430026aa623e65b002541/transformed/exoplayer-decoder-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-container:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/bcf8ccd3182a3ddc8f7a151e24a3ac75/transformed/exoplayer-container-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-container:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/bcf8ccd3182a3ddc8f7a151e24a3ac75/transformed/exoplayer-container-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-common:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/ad39315cdebf3396e21ff9cc3f2ac0ee/transformed/exoplayer-common-2.19.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.exoplayer:exoplayer-common:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/ad39315cdebf3396e21ff9cc3f2ac0ee/transformed/exoplayer-common-2.19.1/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.tracing:tracing:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/2f126e0705602819c2a81cc13b28668e/transformed/tracing-1.0.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.tracing:tracing:1.0.0] /home/steve/.gradle/caches/8.11.1/transforms/2f126e0705602819c2a81cc13b28668e/transformed/tracing-1.0.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /home/steve/.gradle/caches/8.11.1/transforms/5fc7b1fc0fc99f25bd053ac9d3236eca/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml:20:5-44
@@ -215,6 +256,12 @@ MERGED from [androidx.annotation:annotation-experimental:1.3.0] /home/steve/.gra
 		INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml
 	android:minSdkVersion
 		INJECTED from /home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from [com.google.android.exoplayer:exoplayer-core:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/fb296b7300eee57c929bc7720e5408fb/transformed/exoplayer-core-2.19.1/AndroidManifest.xml:24:5-79
+MERGED from [com.google.android.exoplayer:exoplayer-common:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/ad39315cdebf3396e21ff9cc3f2ac0ee/transformed/exoplayer-common-2.19.1/AndroidManifest.xml:24:5-79
+MERGED from [com.google.android.exoplayer:exoplayer-common:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/ad39315cdebf3396e21ff9cc3f2ac0ee/transformed/exoplayer-common-2.19.1/AndroidManifest.xml:24:5-79
+	android:name
+		ADDED from [com.google.android.exoplayer:exoplayer-core:2.19.1] /home/steve/.gradle/caches/8.11.1/transforms/fb296b7300eee57c929bc7720e5408fb/transformed/exoplayer-core-2.19.1/AndroidManifest.xml:24:22-76
 permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.12.0] /home/steve/.gradle/caches/8.11.1/transforms/5a22f43937dfc6c87bae6e965cb18374/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
 	android:protectionLevel

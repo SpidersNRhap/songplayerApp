@@ -1,47 +1,72 @@
 package com.example.songplayer;
 
-import android.graphics.Bitmap;
 import android.app.Service;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
-import java.util.List;
-import java.util.Random;
-import android.graphics.BitmapFactory;
-import android.content.SharedPreferences;
-
-import com.example.songplayer.MainActivity;
-
+import android.os.Looper;
 import android.util.Log;
+import android.app.Notification;
 
+import androidx.core.app.NotificationCompat;
+import androidx.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.media.session.MediaButtonReceiver;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Call;
 
 public class MusicService extends Service {
-    private final IBinder binder = new LocalBinder();
+    // Media and playback
     private MediaPlayer mediaPlayer;
     private List<String> playlist;
+    private List<SongNode> playlistNodes;
     private int currentIndex = 0;
     private boolean isShuffle = false, isLoop = false;
     private final Random random = new Random();
     private PlaybackListener playbackListener;
     private MediaSessionCompat mediaSession;
 
+    // Notification and album art
     private static final int NOTIFICATION_ID = 1001;
     private static final String CHANNEL_ID = "media_playback_channel";
-
     private Bitmap currentAlbumArt = null;
     private Bitmap defaultAlbumArt;
+
+    // Networking and config
+    private String publicIp, port, apiKey, token;
+
+    // Timeout handling
+    private Handler prepareTimeoutHandler;
+    private Runnable prepareTimeoutRunnable;
+
+    // Album art cache
+    private final HashMap<String, Bitmap> albumArtCache = new HashMap<>();
+
+    private final IBinder binder = new LocalBinder();
 
     public class LocalBinder extends Binder {
         public MusicService getService() { return MusicService.this; }
@@ -55,32 +80,10 @@ public class MusicService extends Service {
         super.onCreate();
         mediaSession = new MediaSessionCompat(getApplicationContext(), "SongPlayerSession");
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
-            @Override
-            public void onPlay() {
-                play();
-            }
-            @Override
-            public void onPause() {
-                pause();
-            }
-            @Override
-            public void onSkipToNext() {
-                int next = getNextIndex();
-                if (next != -1) {
-                    currentIndex = next;
-                    savePlaybackState();
-                    playCurrent();
-                }
-            }
-            @Override
-            public void onSkipToPrevious() {
-                int prev = getPreviousIndex();
-                if (prev != -1) {
-                    currentIndex = prev;
-                    savePlaybackState();
-                    playCurrent();
-                }
-            }
+            @Override public void onPlay() { play(); }
+            @Override public void onPause() { pause(); }
+            @Override public void onSkipToNext() { playNext(); }
+            @Override public void onSkipToPrevious() { playPrevious(); }
         });
         mediaSession.setActive(true);
         defaultAlbumArt = BitmapFactory.decodeResource(getResources(), R.drawable.default_art);
@@ -100,43 +103,40 @@ public class MusicService extends Service {
         return START_STICKY;
     }
 
-    public void setPlaylist(List<String> urls, int index, boolean shuffle, boolean loop) {
-        Log.d("SongPlayerDBG", "MusicService.setPlaylist() called, index=" + index + ", urls=" + urls.size());
-        this.playlist = urls;
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        stop();
+        stopForeground(true);
+        stopSelf();
+        super.onTaskRemoved(rootIntent);
+    }
+
+
+    public void setPlaylist(List<SongNode> nodes, int index, boolean shuffle, boolean loop) {
+        this.playlistNodes = nodes;
         this.currentIndex = index;
         this.isShuffle = shuffle;
         this.isLoop = loop;
-        savePlaybackState(); // <-- Save state when playlist is set
-        playCurrent();
+        playSongWithFreshToken(index, nodes, shuffle, loop);
     }
-    public void setShuffle(boolean shuffle) {
-        isShuffle = shuffle;
-    }
-    public void setLoop(boolean loop) {
-        isLoop = loop;
-    }
+
+    public void setShuffle(boolean shuffle) { isShuffle = shuffle; }
+    public void setLoop(boolean loop) { isLoop = loop; }
     public boolean isShuffle() { return isShuffle; }
     public boolean isLoop() { return isLoop; }
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Media Playback",
-                    NotificationManager.IMPORTANCE_LOW
+                    CHANNEL_ID, "Media Playback", NotificationManager.IMPORTANCE_LOW
             );
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
+            if (manager != null) manager.createNotificationChannel(channel);
         }
     }
 
     private void showMediaNotification(boolean isPlaying, String title) {
-        Bitmap albumArt = currentAlbumArt;
-        if (albumArt == null) {
-            albumArt = defaultAlbumArt;
-        }
+        Bitmap albumArt = currentAlbumArt != null ? currentAlbumArt : defaultAlbumArt;
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent contentIntent = PendingIntent.getActivity(
@@ -148,7 +148,7 @@ public class MusicService extends Service {
         String playPauseText = isPlaying ? "Pause" : "Play";
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_music_note) // Use your app icon or a transparent icon here
+                .setSmallIcon(R.drawable.ic_music_note)
                 .setContentTitle(title != null ? title : "Playing")
                 .setContentIntent(contentIntent)
                 .addAction(new NotificationCompat.Action(
@@ -188,21 +188,13 @@ public class MusicService extends Service {
         }
         showMediaNotification(isPlaying(), title);
     }
+
     private String extractSongTitle(String url) {
-    // Remove query string
         int q = url.indexOf('?');
         if (q != -1) url = url.substring(0, q);
-
-        // Get filename after last slash
         int lastSlash = url.lastIndexOf('/');
         String title = (lastSlash != -1 && lastSlash < url.length() - 1) ? url.substring(lastSlash + 1) : url;
-
-        // Decode URL encoding
-        try {
-            title = java.net.URLDecoder.decode(title, "UTF-8");
-        } catch (Exception ignored) {}
-
-        // Remove known audio extension
+        try { title = java.net.URLDecoder.decode(title, "UTF-8"); } catch (Exception ignored) {}
         String[] exts = {".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a"};
         for (String ext : exts) {
             if (title.toLowerCase().endsWith(ext)) {
@@ -217,17 +209,44 @@ public class MusicService extends Service {
         stop();
         if (playlist == null || playlist.isEmpty()) return;
         String url = playlist.get(currentIndex);
-
         String title = extractSongTitle(url);
-
-        // Always reload album art for the current song
         Bitmap albumArt = getAlbumArt(url);
-        currentAlbumArt = albumArt; // <-- This will be null if no art is found
+        currentAlbumArt = albumArt;
 
         mediaPlayer = new MediaPlayer();
         try {
             mediaPlayer.setDataSource(url);
+
+            // Timeout logic
+            if (prepareTimeoutHandler == null) {
+                prepareTimeoutHandler = new Handler(getMainLooper());
+            }
+            if (prepareTimeoutRunnable != null) {
+                prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
+            }
+            prepareTimeoutRunnable = () -> {
+                Log.e("SongPlayerDBG", "MediaPlayer prepareAsync() timeout");
+                if (mediaPlayer != null) {
+                    mediaPlayer.reset();
+                    mediaPlayer.release();
+                    mediaPlayer = null;
+                }
+                if (playbackListener != null) {
+                    playbackListener.onPlaybackError(currentIndex, url, -1, -1);
+                }
+                mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                    .setActions(getAvailableActions())
+                    .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
+                    .build());
+                updateNotification();
+                stopForeground(false);
+            };
+            prepareTimeoutHandler.postDelayed(prepareTimeoutRunnable, 3000);
+
             mediaPlayer.setOnPreparedListener(mp -> {
+                if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
+                    prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
+                }
                 mp.start();
                 mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
                     .setActions(getAvailableActions())
@@ -235,7 +254,7 @@ public class MusicService extends Service {
                     .build());
                 updateNotification();
                 if (playbackListener != null) {
-                    playbackListener.onTrackChanged(currentIndex, title);
+                    playbackListener.onTrackChanged(currentIndex, title, albumArt);
                     playbackListener.onPlaybackStarted();
                 }
             });
@@ -251,9 +270,14 @@ public class MusicService extends Service {
                         .setState(PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1.0f)
                         .build());
                     updateNotification();
+                    stopForeground(true); // Remove notification
+                    stopSelf();           // Stop the service
                 }
             });
             mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
+                    prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
+                }
                 Log.e("SongPlayerDBG", "MediaPlayer error: what=" + what + ", extra=" + extra);
                 if (playbackListener != null) {
                     playbackListener.onPlaybackError(currentIndex, playlist != null ? playlist.get(currentIndex) : null, what, extra);
@@ -265,10 +289,13 @@ public class MusicService extends Service {
                     .build());
                 updateNotification();
                 stopForeground(false);
-                return true; // handled
+                return true;
             });
             mediaPlayer.prepareAsync();
         } catch (Exception e) {
+            if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
+                prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
+            }
             stop();
             mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
                 .setActions(getAvailableActions())
@@ -278,7 +305,7 @@ public class MusicService extends Service {
             stopForeground(false);
         }
 
-        // Set metadata with albumArt (will be null if no art)
+        // Set metadata with albumArt
         MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
         if (albumArt != null) {
@@ -292,9 +319,7 @@ public class MusicService extends Service {
         if (isShuffle) {
             if (playlist.size() == 1) return currentIndex;
             int next;
-            do {
-                next = random.nextInt(playlist.size());
-            } while (next == currentIndex);
+            do { next = random.nextInt(playlist.size()); } while (next == currentIndex);
             return next;
         } else if (currentIndex < playlist.size() - 1) {
             return currentIndex + 1;
@@ -309,9 +334,7 @@ public class MusicService extends Service {
         if (isShuffle) {
             if (playlist.size() == 1) return currentIndex;
             int prev;
-            do {
-                prev = random.nextInt(playlist.size());
-            } while (prev == currentIndex);
+            do { prev = random.nextInt(playlist.size()); } while (prev == currentIndex);
             return prev;
         } else if (currentIndex > 0) {
             return currentIndex - 1;
@@ -341,13 +364,11 @@ public class MusicService extends Service {
                 .setState(PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1.0f)
                 .build());
             updateNotification();
-            // Do NOT call stopForeground(false) here!
             if (playbackListener != null) playbackListener.onPlaybackPaused();
         }
     }
 
     public void seekTo(int pos) {
-        Log.d("SongPlayerDBG", "MusicService.seekTo(" + pos + ")");
         if (mediaPlayer != null) mediaPlayer.seekTo(pos);
     }
 
@@ -357,14 +378,16 @@ public class MusicService extends Service {
 
     public void stop() {
         if (mediaPlayer != null) {
-            mediaPlayer.release();
+            try {
+                mediaPlayer.reset();
+                mediaPlayer.release();
+            } catch (Exception ignored) {}
             mediaPlayer = null;
         }
     }
 
-    public int getCurrentIndex() {
-        return currentIndex;
-    }
+    public int getCurrentIndex() { return currentIndex; }
+
     public boolean isSamePlaylist(List<String> urls) {
         if (playlist == null || urls == null || playlist.size() != urls.size()) return false;
         for (int i = 0; i < playlist.size(); i++) {
@@ -388,69 +411,162 @@ public class MusicService extends Service {
 
     public void playNext() {
         int next = getNextIndex();
-        if (next != -1) {
+        if (next != -1 && playlistNodes != null) {
             currentIndex = next;
-            savePlaybackState(); // <-- Save state when index changes
-            playCurrent();
+            savePlaybackState();
+            playSongWithFreshToken(next, playlistNodes, isShuffle, isLoop);
         }
     }
 
     public void playPrevious() {
         int prev = getPreviousIndex();
-        if (prev != -1) {
+        if (prev != -1 && playlistNodes != null) {
             currentIndex = prev;
-            savePlaybackState(); // <-- Save state when index changes
-            playCurrent();
+            savePlaybackState();
+            playSongWithFreshToken(prev, playlistNodes, isShuffle, isLoop);
         }
     }
 
     public void setPlaylistWithArt(List<String> urls, int index, boolean shuffle, boolean loop, Bitmap albumArt) {
-        Log.d("SongPlayerDBG", "MusicService.setPlaylistWithArt() called, index=" + index + ", urls=" + urls.size());
         this.playlist = urls;
         this.currentIndex = index;
         this.isShuffle = shuffle;
         this.isLoop = loop;
         this.currentAlbumArt = albumArt;
-        savePlaybackState(); // <-- Save state when playlist is set
+        savePlaybackState();
         playCurrent();
     }
 
     public void updateNotificationArt(Bitmap albumArt) {
-        this.currentAlbumArt = albumArt; // store it if needed
-        updateNotification(); // your method to refresh the notification UI
+        this.currentAlbumArt = albumArt;
+        updateNotification();
     }
 
     private void savePlaybackState() {
         SharedPreferences prefs = getSharedPreferences("music_service_prefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt("currentIndex", currentIndex);
-        // Save playlist as a joined string (simple, for local file paths/URLs)
         if (playlist != null) {
             editor.putString("playlist", android.text.TextUtils.join(";;", playlist));
         }
         editor.apply();
     }
 
+    public void setServerConfig(String publicIp, String port, String apiKey) {
+        this.publicIp = publicIp;
+        this.port = port;
+        this.apiKey = apiKey;
+    }
+
+    // Fetch token and play song at index
+    public void playSongWithFreshToken(int songIndex, List<SongNode> playlistNodes, boolean shuffle, boolean loop) {
+        OkHttpClient client = getUnsafeOkHttpClient();
+        String tokenUrl = "https://" + publicIp + ":" + port + "/token?apiKey=" + apiKey;
+        Request request = new Request.Builder().url(tokenUrl).build();
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override public void onFailure(Call call, IOException e) { }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                String body = response.body() != null ? response.body().string() : "";
+                if (response.isSuccessful()) {
+                    try {
+                        JsonObject json = JsonParser.parseString(body).getAsJsonObject();
+                        token = json.get("token").getAsString();
+                        List<String> playlistUrls = new ArrayList<>();
+                        for (SongNode node : playlistNodes) {
+                            String url = getStreamUrl(node.path, token);
+                            playlistUrls.add(url);
+                        }
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            setPlaylistWithArt(playlistUrls, songIndex, shuffle, loop, null);
+                        });
+                    } catch (Exception ignored) {}
+                }
+            }
+        });
+    }
+
+    // Utility to build stream URL
+    private String getStreamUrl(String songPath, String token) {
+        try {
+            int lastSlash = songPath.lastIndexOf('/');
+            if (lastSlash != -1) {
+                String folder = URLEncoder.encode(songPath.substring(0, lastSlash), "UTF-8").replace("+", "%20");
+                String filename = URLEncoder.encode(songPath.substring(lastSlash + 1), "UTF-8").replace("+", "%20");
+                return "https://" + publicIp + ":" + port + "/stream/" + folder + "/" + filename + "?token=" + token;
+            } else {
+                String filename = URLEncoder.encode(songPath, "UTF-8").replace("+", "%20");
+                return "https://" + publicIp + ":" + port + "/stream/" + filename + "?token=" + token;
+            }
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public OkHttpClient getUnsafeOkHttpClient() {
+        try {
+            javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[]{
+                new javax.net.ssl.X509TrustManager() {
+                    @Override public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                    @Override public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                    @Override public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[]{}; }
+                }
+            };
+
+            javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            javax.net.ssl.SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.sslSocketFactory(sslSocketFactory, (javax.net.ssl.X509TrustManager)trustAllCerts[0]);
+            builder.hostnameVerifier((hostname, session) -> true);
+
+            builder.connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
+            builder.readTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
+            builder.writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
+
+            return builder.build();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public interface PlaybackListener {
         void onPlaybackStarted();
         void onPlaybackPaused();
-        void onTrackChanged(int newIndex, String songTitle);
-        void onPlaybackError(int index, String url, int what, int extra); // <-- add this
+        void onTrackChanged(int newIndex, String songTitle, Bitmap albumArt);
+        void onPlaybackError(int index, String url, int what, int extra);
+    }
+
+    @Override
+    public void onDestroy() {
+        stop();
+        if (mediaSession != null) {
+            mediaSession.release();
+        }
+        albumArtCache.clear();
+        stopForeground(true); // <-- This removes the notification
+        super.onDestroy();
     }
 
     private Bitmap getAlbumArt(String url) {
+        // Check cache first
+        if (albumArtCache.containsKey(url)) {
+            return albumArtCache.get(url);
+        }
         try {
             android.media.MediaMetadataRetriever mmr = new android.media.MediaMetadataRetriever();
             mmr.setDataSource(url, new java.util.HashMap<>());
             byte[] art = mmr.getEmbeddedPicture();
             mmr.release();
             if (art != null) {
-                android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
-                options.inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888;
-                // Do NOT scale here—return the full-res bitmap
-                return android.graphics.BitmapFactory.decodeByteArray(art, 0, art.length, options);
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length, options);
+                albumArtCache.put(url, bitmap); // Cache it
+                return bitmap;
             }
         } catch (Exception ignored) {}
+        albumArtCache.put(url, null); // Cache miss as null to avoid repeated attempts
         return null;
     }
 }

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.songplayer.app-mergeDebugResources-20:/values-pt-rBR/values-pt-rBR.xml",
+            "outputFile": "com.example.songplayer.app-mergeDebugResources-22:/values-pt-rBR/values-pt-rBR.xml",
             "map": [
                 {
                     "source": "/home/steve/.gradle/caches/8.11.1/transforms/a86c860001760ef6da3818b273ca5801/transformed/material-1.4.0/res/values-pt-rBR/values-pt-rBR.xml",
