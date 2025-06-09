@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.songplayer.app-mergeDebugResources-22:/values-v23/values-v23.xml",
+            "outputFile": "com.example.songplayer.app-mergeDebugResources-20:/values-v23/values-v23.xml",
             "map": [
                 {
                     "source": "/home/steve/.gradle/caches/8.11.1/transforms/e30a81639ab2f1e637dd831fd7d49f92/transformed/appcompat-1.3.1/res/values-v23/values-v23.xml",
