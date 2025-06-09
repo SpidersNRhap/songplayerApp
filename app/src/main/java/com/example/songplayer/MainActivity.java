@@ -420,6 +420,11 @@ public class MainActivity extends AppCompatActivity {
                 Response response = client.newCall(request).execute();
                 Log.d("SongPlayerDBG", "Response code: " + response.code());
                 Log.d("SongPlayerDBG", "Content-Type: " + response.header("Content-Type"));
+                if (response.code() == 403) {
+                    Log.d("SongPlayerDBG", "Token is stale or expired during metadata fetch. Fetching a new token.");
+                    runOnUiThread(this::fetchTokenAndThenSongs);
+                    return;
+                }
                 if (!response.isSuccessful()) {
                     Log.e("SongPlayerDBG", "Failed to fetch file: HTTP " + response.code());
                     runOnUiThread(() -> songMeta.setText(""));
@@ -600,9 +605,15 @@ public class MainActivity extends AppCompatActivity {
                     List<SongNode> playlist = playlists.get(name);
                     if (playlist != null && !playlist.isEmpty()) {
                         currentPlaylist = playlist;
-                        currentSongIndex = 0;
+                        int startIndex;
+                        if (isShuffle) {
+                            startIndex = random.nextInt(playlist.size());
+                        } else {
+                            startIndex = 0;
+                        }
+                        currentSongIndex = startIndex;
                         selectedPlaylistName = name;
-                        playSongViaService(0);
+                        playSongViaService(startIndex);
                     }
                 }
             );

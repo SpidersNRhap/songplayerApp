@@ -49,53 +49,52 @@
 30-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:10:9-54
 31        android:supportsRtl="true"
 31-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:11:9-35
-32        android:testOnly="true"
-33        android:theme="@style/AppTheme" >
-33-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:12:9-40
-34        <activity
-34-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:15:9-24:20
-35            android:name="com.example.songplayer.MainActivity"
-35-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:16:13-41
-36            android:exported="true"
-36-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:19:13-36
-37            android:launchMode="singleTop"
-37-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:18:13-43
-38            android:theme="@style/Theme.SongPlayer.Launcher" >
-38-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:17:13-61
-39            <intent-filter>
-39-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:20:13-23:29
-40                <action android:name="android.intent.action.MAIN" />
-40-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:17-69
-40-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:25-66
-41
-42                <category android:name="android.intent.category.LAUNCHER" />
-42-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:22:17-77
-42-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:22:27-74
-43            </intent-filter>
-44        </activity>
-45
-46        <receiver
-46-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:25:9-31:20
-47            android:name="androidx.media.session.MediaButtonReceiver"
-47-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:26:13-70
-48            android:exported="true" >
-48-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:27:13-36
-49            <intent-filter>
-49-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:28:13-30:29
-50                <action android:name="android.intent.action.MEDIA_BUTTON" />
-50-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:29:17-77
-50-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:29:25-74
-51            </intent-filter>
-52        </receiver>
-53
-54        <service
-54-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:32:9-35:61
-55            android:name="com.example.songplayer.MusicService"
-55-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:33:13-41
-56            android:exported="false"
-56-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:34:13-37
-57            android:foregroundServiceType="mediaPlayback" />
-57-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:35:13-58
-58    </application>
-59
-60</manifest>
+32        android:theme="@style/AppTheme" >
+32-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:12:9-40
+33        <activity
+33-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:15:9-24:20
+34            android:name="com.example.songplayer.MainActivity"
+34-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:16:13-41
+35            android:exported="true"
+35-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:19:13-36
+36            android:launchMode="singleTop"
+36-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:18:13-43
+37            android:theme="@style/Theme.SongPlayer.Launcher" >
+37-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:17:13-61
+38            <intent-filter>
+38-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:20:13-23:29
+39                <action android:name="android.intent.action.MAIN" />
+39-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:17-69
+39-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:21:25-66
+40
+41                <category android:name="android.intent.category.LAUNCHER" />
+41-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:22:17-77
+41-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:22:27-74
+42            </intent-filter>
+43        </activity>
+44
+45        <receiver
+45-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:25:9-31:20
+46            android:name="androidx.media.session.MediaButtonReceiver"
+46-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:26:13-70
+47            android:exported="true" >
+47-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:27:13-36
+48            <intent-filter>
+48-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:28:13-30:29
+49                <action android:name="android.intent.action.MEDIA_BUTTON" />
+49-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:29:17-77
+49-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:29:25-74
+50            </intent-filter>
+51        </receiver>
+52
+53        <service
+53-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:32:9-35:61
+54            android:name="com.example.songplayer.MusicService"
+54-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:33:13-41
+55            android:exported="false"
+55-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:34:13-37
+56            android:foregroundServiceType="mediaPlayback" />
+56-->/home/steve/AndroidStudioProjects/songplayer/app/src/main/AndroidManifest.xml:35:13-58
+57    </application>
+58
+59</manifest>

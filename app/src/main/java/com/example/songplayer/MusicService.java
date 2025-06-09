@@ -31,6 +31,7 @@ import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -70,6 +71,10 @@ public class MusicService extends Service {
     // Album art cache
     private final HashMap<String, Bitmap> albumArtCache = new HashMap<>();
 
+    // Shuffle handling
+    private List<Integer> shuffleOrder = new ArrayList<>();
+    private int shufflePointer = 0;
+
     private final IBinder binder = new LocalBinder();
 
     public class LocalBinder extends Binder {
@@ -95,9 +100,23 @@ public class MusicService extends Service {
 
         SharedPreferences prefs = getSharedPreferences("music_service_prefs", MODE_PRIVATE);
         currentIndex = prefs.getInt("currentIndex", 0);
+        isShuffle = prefs.getBoolean("isShuffle", false); // <-- Add this
+        isLoop = prefs.getBoolean("isLoop", false);       // <-- Add this
         String playlistStr = prefs.getString("playlist", null);
         if (playlistStr != null) {
             playlist = java.util.Arrays.asList(playlistStr.split(";;"));
+            if (playlistNodes == null && playlist != null) {
+                playlistNodes = new ArrayList<>();
+                for (String url : playlist) {
+                    playlistNodes.add(new SongNode(null, url, "file", null));
+                }
+                Log.d("SongPlayerDBG", "onCreate: playlistNodes rebuilt, size=" + playlistNodes.size());
+            }
+            Log.d("SongPlayerDBG", "onCreate: isShuffle=" + isShuffle + ", isLoop=" + isLoop);
+            if (isShuffle && playlist.size() > 0) {
+                generateShuffleOrder(currentIndex);
+                Log.d("SongPlayerDBG", "onCreate: shuffleOrder=" + shuffleOrder);
+            }
         }
     }
 
@@ -121,10 +140,29 @@ public class MusicService extends Service {
         this.currentIndex = index;
         this.isShuffle = shuffle;
         this.isLoop = loop;
+        // Always rebuild playlist URLs when switching playlists
+        if (token != null) {
+            List<String> newUrls = new ArrayList<>();
+            for (SongNode node : nodes) {
+                newUrls.add(getStreamUrl(node.path, token));
+            }
+            this.playlist = newUrls;
+        } else {
+            this.playlist = new ArrayList<>();
+        }
+        if (isShuffle) generateShuffleOrder(index);
         playSongWithFreshToken(index, nodes, shuffle, loop);
     }
 
-    public void setShuffle(boolean shuffle) { isShuffle = shuffle; }
+    public void setShuffle(boolean shuffle) {
+        this.isShuffle = shuffle;
+        if (isShuffle && playlist != null && !playlist.isEmpty()) {
+            generateShuffleOrder(currentIndex);
+            Log.d("SongPlayerDBG", "setShuffle: generated shuffleOrder=" + shuffleOrder);
+        }
+        savePlaybackState();
+    }      
+    
     public void setLoop(boolean loop) { isLoop = loop; }
     public boolean isShuffle() { return isShuffle; }
     public boolean isLoop() { return isLoop; }
@@ -138,6 +176,15 @@ public class MusicService extends Service {
             if (manager != null) manager.createNotificationChannel(channel);
         }
     }
+
+    private void rebuildPlaylistUrlsWithCurrentToken() {
+        if (playlistNodes == null || token == null) return;
+        List<String> newUrls = new ArrayList<>();
+        for (SongNode node : playlistNodes) {
+            newUrls.add(getStreamUrl(node.path, token));
+        }
+        this.playlist = newUrls;
+}
 
     private void showMediaNotification(boolean isPlaying, String title) {
         Bitmap albumArt = currentAlbumArt != null ? currentAlbumArt : defaultAlbumArt;
@@ -211,7 +258,11 @@ public class MusicService extends Service {
 
     private void playCurrent() {
         stop();
+        rebuildPlaylistUrlsWithCurrentToken();
         if (playlist == null || playlist.isEmpty()) return;
+        if (currentIndex < 0 || currentIndex >= playlist.size()) {
+            currentIndex = 0;
+        }
         String url = playlist.get(currentIndex);
         String title = extractSongTitle(url);
         Bitmap albumArt = getAlbumArt(url);
@@ -318,13 +369,33 @@ public class MusicService extends Service {
         mediaSession.setMetadata(metaBuilder.build());
     }
 
+    private void generateShuffleOrder(int startIndex) {
+        shuffleOrder.clear();
+        int size = playlist != null ? playlist.size() : 0;
+        for (int i = 0; i < size; i++) shuffleOrder.add(i);
+        Collections.shuffle(shuffleOrder, random);
+        // Move the current song to the start
+        if (startIndex >= 0 && startIndex < shuffleOrder.size()) {
+            int idx = shuffleOrder.indexOf(startIndex);
+            if (idx != 0) {
+                int tmp = shuffleOrder.get(0);
+                shuffleOrder.set(0, shuffleOrder.get(idx));
+                shuffleOrder.set(idx, tmp);
+            }
+        }
+        shufflePointer = 0;
+    }
+
     private int getNextIndex() {
         if (playlist == null || playlist.isEmpty()) return -1;
         if (isShuffle) {
-            if (playlist.size() == 1) return currentIndex;
-            int next;
-            do { next = random.nextInt(playlist.size()); } while (next == currentIndex);
-            return next;
+            if (shufflePointer < shuffleOrder.size() - 1) {
+                return shuffleOrder.get(shufflePointer + 1);
+            } else if (isLoop && !shuffleOrder.isEmpty()) {
+                // Wrap to the start of the shuffle order
+                return shuffleOrder.get(0);
+            }
+            return -1;
         } else if (currentIndex < playlist.size() - 1) {
             return currentIndex + 1;
         } else if (isLoop) {
@@ -336,16 +407,24 @@ public class MusicService extends Service {
     private int getPreviousIndex() {
         if (playlist == null || playlist.isEmpty()) return -1;
         if (isShuffle) {
-            if (playlist.size() == 1) return currentIndex;
-            int prev;
-            do { prev = random.nextInt(playlist.size()); } while (prev == currentIndex);
-            return prev;
+            if (shuffleOrder.isEmpty()) {
+                    generateShuffleOrder(currentIndex);
+            } // Prevent crash if empty
+            if (shufflePointer > 0) {
+                return shuffleOrder.get(shufflePointer - 1);
+            } else if (isLoop && !shuffleOrder.isEmpty()) {
+                // Wrap to last song in shuffle order
+                return shuffleOrder.get(shuffleOrder.size() - 1);
+            } else {
+                // At the start and not looping: stay on the current song
+                return shuffleOrder.get(shufflePointer);
+            }
         } else if (currentIndex > 0) {
             return currentIndex - 1;
         } else if (isLoop) {
             return playlist.size() - 1;
         }
-        return -1;
+        return currentIndex; // At the start, just restart current song
     }
 
     public void play() {
@@ -416,18 +495,69 @@ public class MusicService extends Service {
     public void playNext() {
         int next = getNextIndex();
         if (next != -1 && playlistNodes != null) {
-            currentIndex = next;
+            if (isShuffle) {
+                if (shufflePointer < shuffleOrder.size() - 1) {
+                    shufflePointer++;
+                } else if (isLoop && !shuffleOrder.isEmpty()) {
+                    shufflePointer = 0;
+                }
+                currentIndex = shuffleOrder.get(shufflePointer);
+            } else {
+                currentIndex = next;
+            }
             savePlaybackState();
-            playSongWithFreshToken(next, playlistNodes, isShuffle, isLoop);
+            playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
         }
     }
 
     public void playPrevious() {
         int prev = getPreviousIndex();
-        if (prev != -1 && playlistNodes != null) {
-            currentIndex = prev;
-            savePlaybackState();
-            playSongWithFreshToken(prev, playlistNodes, isShuffle, isLoop);
+        Log.d("SongPlayerDBG", "playPrevious: prev=" + prev + ", shufflePointer=" + shufflePointer + ", isShuffle=" + isShuffle + ", isLoop=" + isLoop + ", shuffleOrder=" + shuffleOrder);
+        if (playlistNodes != null) {
+            if (isShuffle) {
+                if (shuffleOrder.isEmpty()) {
+                    Log.d("SongPlayerDBG", "playPrevious: shuffleOrder is empty");
+                    if (mediaPlayer != null) {
+                        mediaPlayer.seekTo(0);
+                        mediaPlayer.start();
+                    }
+                    return;
+                }
+                if (shufflePointer > 0) {
+                    shufflePointer--;
+                    currentIndex = shuffleOrder.get(shufflePointer);
+                    Log.d("SongPlayerDBG", "playPrevious: Moved shufflePointer to " + shufflePointer + ", currentIndex=" + currentIndex);
+                    savePlaybackState();
+                    playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
+                } else if (isLoop && !shuffleOrder.isEmpty()) {
+                    shufflePointer = shuffleOrder.size() - 1;
+                    currentIndex = shuffleOrder.get(shufflePointer);
+                    Log.d("SongPlayerDBG", "playPrevious: Wrapped to last song, shufflePointer=" + shufflePointer + ", currentIndex=" + currentIndex);
+                    savePlaybackState();
+                    playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
+                } else {
+                    Log.d("SongPlayerDBG", "playPrevious: At start, seeking to 0");
+                    if (mediaPlayer != null) {
+                        mediaPlayer.seekTo(0);
+                        mediaPlayer.start();
+                    }
+                }
+            } else {
+                if (prev != currentIndex) {
+                    currentIndex = prev;
+                    Log.d("SongPlayerDBG", "playPrevious: Non-shuffle, moved to prev=" + prev);
+                    savePlaybackState();
+                    playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
+                } else {
+                    Log.d("SongPlayerDBG", "playPrevious: Non-shuffle, at start, seeking to 0");
+                    if (mediaPlayer != null) {
+                        mediaPlayer.seekTo(0);
+                        mediaPlayer.start();
+                    }
+                }
+            }
+        } else {
+            Log.d("SongPlayerDBG", "playPrevious: playlistNodes is null");
         }
     }
 
@@ -437,6 +567,7 @@ public class MusicService extends Service {
         this.isShuffle = shuffle;
         this.isLoop = loop;
         this.currentAlbumArt = albumArt;
+        if (isShuffle) generateShuffleOrder(index);
         savePlaybackState();
         playCurrent();
     }
@@ -453,6 +584,8 @@ public class MusicService extends Service {
         if (playlist != null) {
             editor.putString("playlist", android.text.TextUtils.join(";;", playlist));
         }
+        editor.putBoolean("isShuffle", isShuffle); // <-- Add this
+        editor.putBoolean("isLoop", isLoop);       // <-- Add this
         editor.apply();
     }
 
@@ -481,7 +614,9 @@ public class MusicService extends Service {
                             playlistUrls.add(url);
                         }
                         new Handler(Looper.getMainLooper()).post(() -> {
-                            setPlaylistWithArt(playlistUrls, songIndex, shuffle, loop, null);
+                            MusicService.this.playlist = playlistUrls;
+                            MusicService.this.currentIndex = songIndex;
+                            playCurrent();
                         });
                     } catch (Exception ignored) {}
                 }
