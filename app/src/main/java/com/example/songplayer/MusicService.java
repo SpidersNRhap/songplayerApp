@@ -369,163 +369,90 @@ public class MusicService extends Service {
         }
     }
 
-    private void playCurrent() {
-        Log.d("SongPlayerDBG", "playCurrent: currentIndex=" + currentIndex + ", playlist.size=" + (playlist != null ? playlist.size() : 0));
-        stop();
-        rebuildPlaylistUrlsWithCurrentToken();
-        if (playlist == null || playlist.isEmpty()) {
-            Log.d("SongPlayerDBG", "playCurrent: playlist is null or empty");
-            return;
-        }
-        if (currentIndex < 0 || currentIndex >= playlist.size()) {
-            Log.d("SongPlayerDBG", "playCurrent: currentIndex out of bounds, resetting to 0");
-            currentIndex = 0;
-        }
-        String url = playlist.get(currentIndex);
-        Log.d("SongPlayerDBG", "playCurrent: Playing URL: " + url);
-        String title = extractSongTitle(url);
-        Bitmap albumArt = getAlbumArt(url);
-        currentAlbumArt = albumArt;
-
-        mediaPlayer = new MediaPlayer();
-        try {
-            mediaPlayer.setDataSource(url);
-
-            if (prepareTimeoutHandler == null) {
-                prepareTimeoutHandler = new Handler(getMainLooper());
-            }
-            if (prepareTimeoutRunnable != null) {
-                prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
-            }
-            prepareTimeoutRunnable = () -> {
-                Log.e("SongPlayerDBG", "MediaPlayer prepareAsync() timeout");
-                if (mediaPlayer != null) {
-                    mediaPlayer.reset();
-                    mediaPlayer.release();
-                    mediaPlayer = null;
-                }
-                if (playbackListener != null) {
-                    playbackListener.onPlaybackError(currentIndex, url, -1, -1);
-                }
-                mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
-                    .setActions(getAvailableActions())
-                    .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
-                    .build());
-                updateNotification();
-                stopForeground(false);
-            };
-            prepareTimeoutHandler.postDelayed(prepareTimeoutRunnable, 3000);
-
-            mediaPlayer.setOnPreparedListener(mp -> {
-                if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
-                    prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
-                }
-                mp.start();
-                mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
-                    .setActions(getAvailableActions())
-                    .setState(PlaybackStateCompat.STATE_PLAYING, getCurrentPosition(), 1.0f)
-                    .build());
-                updateNotification();
-                if (playbackListener != null) {
-                    playbackListener.onTrackChanged(currentIndex, title, albumArt);
-                    playbackListener.onPlaybackStarted();
-                }
-            });
-            mediaPlayer.setOnCompletionListener(mp -> {
-                int next = getNextIndex();
-                if (next != -1) {
-                    currentIndex = next;
-                    playCurrentWithFreshToken();
-                } else {
-                    stop();
-                    mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
-                        .setActions(getAvailableActions())
-                        .setState(PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1.0f)
-                        .build());
-                    updateNotification();
-                    stopForeground(true);
-                    stopSelf();
-                }
-            });
-            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-                if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
-                    prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
-                }
-                Log.e("SongPlayerDBG", "MediaPlayer error: what=" + what + ", extra=" + extra);
-
-                if (!retriedAfterTokenRefresh && extra == 403) {
-                    retriedAfterTokenRefresh = true;
-                    if (playlistNodes != null) {
-                        playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
-                    }
-                } else {
-                    retriedAfterTokenRefresh = false;
-                    stop();
-                    mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
-                        .setActions(getAvailableActions())
-                        .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
-                        .build());
-                    updateNotification();
-                    stopForeground(false);
-                    if (playbackListener != null) {
-                        playbackListener.onPlaybackError(currentIndex, playlist != null ? playlist.get(currentIndex) : null, what, extra);
-                    }
-                }
-                return true;
-            });
-            mediaPlayer.prepareAsync();
-        } catch (Exception e) {
-            Log.e("SongPlayerDBG", "playCurrent: Exception while setting data source", e);
-            if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
-                prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
-            }
-            stop();
-            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
-                .setActions(getAvailableActions())
-                .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
-                .build());
-            updateNotification();
-            stopForeground(false);
-        }
-
-        MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder()
-            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
-        if (albumArt != null) {
-            metaBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt);
-        }
-        mediaSession.setMetadata(metaBuilder.build());
-    }
 
     private void playCurrentWithFreshToken() {
         refreshTokenAndThen(this::playCurrent);
     }
 
-    private void generateShuffleOrder(int startIndex) {
-        shuffleOrder.clear();
-        int size = playlist != null ? playlist.size() : 0;
-        for (int i = 0; i < size; i++) shuffleOrder.add(i);
-        Collections.shuffle(shuffleOrder, random);
-        if (startIndex >= 0 && startIndex < shuffleOrder.size()) {
-            int idx = shuffleOrder.indexOf(startIndex);
-            if (idx != 0) {
-                int tmp = shuffleOrder.get(0);
-                shuffleOrder.set(0, shuffleOrder.get(idx));
-                shuffleOrder.set(idx, tmp);
-            }
-        }
-        shufflePointer = 0;
-    }
-
-    private int getNextIndex() {
-        if (playlist == null || playlist.isEmpty()) return -1;
+    // PATCH: playNext always advances shufflePointer and uses shuffleOrder for currentIndex
+    public void playNext() {
+        if (playlistNodes == null || playlist == null || playlist.isEmpty()) return;
         if (isShuffle) {
             if (shufflePointer < shuffleOrder.size() - 1) {
-                return shuffleOrder.get(shufflePointer + 1);
+                shufflePointer++;
             } else if (isLoop && !shuffleOrder.isEmpty()) {
-                return shuffleOrder.get(0);
+                shufflePointer = 0;
+            } else {
+                // End of shuffle, not looping
+                stop();
+                mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                    .setActions(getAvailableActions())
+                    .setState(PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1.0f)
+                    .build());
+                updateNotification();
+                stopForeground(true);
+                stopSelf();
+                return;
             }
-            return -1;
-        } else if (currentIndex < playlist.size() - 1) {
+            currentIndex = shuffleOrder.get(shufflePointer);
+        } else {
+            int next = getNextIndex();
+            if (next == -1) {
+                stop();
+                mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                    .setActions(getAvailableActions())
+                    .setState(PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1.0f)
+                    .build());
+                updateNotification();
+                stopForeground(true);
+                stopSelf();
+                return;
+            }
+            currentIndex = next;
+        }
+        savePlaybackState();
+        playCurrentWithFreshToken();
+    }
+
+    // PATCH: playPrevious always moves shufflePointer and uses shuffleOrder for currentIndex
+    public void playPrevious() {
+        if (playlistNodes == null || playlist == null || playlist.isEmpty()) return;
+        if (isShuffle) {
+            if (shuffleOrder.isEmpty()) {
+                generateShuffleOrder(currentIndex);
+            }
+            if (shufflePointer > 0) {
+                shufflePointer--;
+            } else if (isLoop && !shuffleOrder.isEmpty()) {
+                shufflePointer = shuffleOrder.size() - 1;
+            } else {
+                // At start, just restart song
+                if (mediaPlayer != null) {
+                    mediaPlayer.seekTo(0);
+                    mediaPlayer.start();
+                }
+                return;
+            }
+            currentIndex = shuffleOrder.get(shufflePointer);
+        } else {
+            int prev = getPreviousIndex();
+            if (prev == currentIndex) {
+                if (mediaPlayer != null) {
+                    mediaPlayer.seekTo(0);
+                    mediaPlayer.start();
+                }
+                return;
+            }
+            currentIndex = prev;
+        }
+        savePlaybackState();
+        playCurrentWithFreshToken();
+    }
+
+    // PATCH: getNextIndex and getPreviousIndex only used for non-shuffle mode
+    private int getNextIndex() {
+        if (playlist == null || playlist.isEmpty()) return -1;
+        if (currentIndex < playlist.size() - 1) {
             return currentIndex + 1;
         } else if (isLoop) {
             return 0;
@@ -534,19 +461,8 @@ public class MusicService extends Service {
     }
 
     private int getPreviousIndex() {
-        if (playlist == null || playlist.isEmpty()) return -1;
-        if (isShuffle) {
-            if (shuffleOrder.isEmpty()) {
-                generateShuffleOrder(currentIndex);
-            }
-            if (shufflePointer > 0) {
-                return shuffleOrder.get(shufflePointer - 1);
-            } else if (isLoop && !shuffleOrder.isEmpty()) {
-                return shuffleOrder.get(shuffleOrder.size() - 1);
-            } else {
-                return shuffleOrder.get(shufflePointer);
-            }
-        } else if (currentIndex > 0) {
+        if (playlist == null || playlist.isEmpty()) return currentIndex;
+        if (currentIndex > 0) {
             return currentIndex - 1;
         } else if (isLoop) {
             return playlist.size() - 1;
@@ -619,74 +535,146 @@ public class MusicService extends Service {
                 PlaybackStateCompat.ACTION_SEEK_TO;
     }
 
-    public void playNext() {
-        int next = getNextIndex();
-        if (next != -1 && playlistNodes != null) {
-            if (isShuffle) {
-                if (shufflePointer < shuffleOrder.size() - 1) {
-                    shufflePointer++;
-                } else if (isLoop && !shuffleOrder.isEmpty()) {
-                    shufflePointer = 0;
-                }
-                currentIndex = shuffleOrder.get(shufflePointer);
-            } else {
-                currentIndex = next;
+    // --- PATCH START: Shuffle logic fix ---
+
+    // Generate a new shuffle order, keeping the current song at the start
+    private void generateShuffleOrder(int startIndex) {
+        shuffleOrder.clear();
+        int size = playlist != null ? playlist.size() : 0;
+        for (int i = 0; i < size; i++) shuffleOrder.add(i);
+        Collections.shuffle(shuffleOrder, random);
+        if (startIndex >= 0 && startIndex < shuffleOrder.size()) {
+            int idx = shuffleOrder.indexOf(startIndex);
+            if (idx != 0) {
+                int tmp = shuffleOrder.get(0);
+                shuffleOrder.set(0, shuffleOrder.get(idx));
+                shuffleOrder.set(idx, tmp);
             }
-            savePlaybackState();
-            playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
         }
+        shufflePointer = 0;
     }
 
-    public void playPrevious() {
-        int prev = getPreviousIndex();
-        Log.d("SongPlayerDBG", "playPrevious: prev=" + prev + ", shufflePointer=" + shufflePointer + ", isShuffle=" + isShuffle + ", isLoop=" + isLoop + ", shuffleOrder=" + shuffleOrder);
-        if (playlistNodes != null) {
-            if (isShuffle) {
-                if (shuffleOrder.isEmpty()) {
-                    Log.d("SongPlayerDBG", "playPrevious: shuffleOrder is empty");
-                    if (mediaPlayer != null) {
-                        mediaPlayer.seekTo(0);
-                        mediaPlayer.start();
-                    }
-                    return;
-                }
-                if (shufflePointer > 0) {
-                    shufflePointer--;
-                    currentIndex = shuffleOrder.get(shufflePointer);
-                    Log.d("SongPlayerDBG", "playPrevious: Moved shufflePointer to " + shufflePointer + ", currentIndex=" + currentIndex);
-                    savePlaybackState();
-                    playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
-                } else if (isLoop && !shuffleOrder.isEmpty()) {
-                    shufflePointer = shuffleOrder.size() - 1;
-                    currentIndex = shuffleOrder.get(shufflePointer);
-                    Log.d("SongPlayerDBG", "playPrevious: Wrapped to last song, shufflePointer=" + shufflePointer + ", currentIndex=" + currentIndex);
-                    savePlaybackState();
-                    playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
-                } else {
-                    Log.d("SongPlayerDBG", "playPrevious: At start, seeking to 0");
-                    if (mediaPlayer != null) {
-                        mediaPlayer.seekTo(0);
-                        mediaPlayer.start();
-                    }
-                }
-            } else {
-                if (prev != currentIndex) {
-                    currentIndex = prev;
-                    Log.d("SongPlayerDBG", "playPrevious: Non-shuffle, moved to prev=" + prev);
-                    savePlaybackState();
-                    playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
-                } else {
-                    Log.d("SongPlayerDBG", "playPrevious: Non-shuffle, at start, seeking to 0");
-                    if (mediaPlayer != null) {
-                        mediaPlayer.seekTo(0);
-                        mediaPlayer.start();
-                    }
-                }
-            }
-        } else {
-            Log.d("SongPlayerDBG", "playPrevious: playlistNodes is null");
+    // Always use shufflePointer to determine currentIndex in shuffle mode
+    private void playCurrent() {
+        Log.d("SongPlayerDBG", "playCurrent: currentIndex=" + currentIndex + ", playlist.size=" + (playlist != null ? playlist.size() : 0));
+        stop();
+        rebuildPlaylistUrlsWithCurrentToken();
+        if (playlist == null || playlist.isEmpty()) {
+            Log.d("SongPlayerDBG", "playCurrent: playlist is null or empty");
+            return;
         }
+        // --- PATCH: In shuffle mode, always set currentIndex from shuffleOrder ---
+        if (isShuffle && shuffleOrder.size() > 0) {
+            currentIndex = shuffleOrder.get(shufflePointer);
+        }
+        if (currentIndex < 0 || currentIndex >= playlist.size()) {
+            Log.d("SongPlayerDBG", "playCurrent: currentIndex out of bounds, resetting to 0");
+            currentIndex = 0;
+        }
+        String url = playlist.get(currentIndex);
+        Log.d("SongPlayerDBG", "playCurrent: Playing URL: " + url);
+        String title = extractSongTitle(url);
+        Bitmap albumArt = getAlbumArt(url);
+        currentAlbumArt = albumArt;
+
+        mediaPlayer = new MediaPlayer();
+        try {
+            mediaPlayer.setDataSource(url);
+
+            if (prepareTimeoutHandler == null) {
+                prepareTimeoutHandler = new Handler(getMainLooper());
+            }
+            if (prepareTimeoutRunnable != null) {
+                prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
+            }
+            prepareTimeoutRunnable = () -> {
+                Log.e("SongPlayerDBG", "MediaPlayer prepareAsync() timeout");
+                if (mediaPlayer != null) {
+                    mediaPlayer.reset();
+                    mediaPlayer.release();
+                    mediaPlayer = null;
+                }
+                if (playbackListener != null) {
+                    playbackListener.onPlaybackError(currentIndex, url, -1, -1);
+                }
+                mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                    .setActions(getAvailableActions())
+                    .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
+                    .build());
+                updateNotification();
+                stopForeground(false);
+            };
+            prepareTimeoutHandler.postDelayed(prepareTimeoutRunnable, 3000);
+
+            mediaPlayer.setOnPreparedListener(mp -> {
+                if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
+                    prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
+                }
+                mp.start();
+                mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                    .setActions(getAvailableActions())
+                    .setState(PlaybackStateCompat.STATE_PLAYING, getCurrentPosition(), 1.0f)
+                    .build());
+                updateNotification();
+                if (playbackListener != null) {
+                    playbackListener.onTrackChanged(currentIndex, title, albumArt);
+                    playbackListener.onPlaybackStarted();
+                }
+            });
+            mediaPlayer.setOnCompletionListener(mp -> {
+                playNext(); // PATCH: Always use playNext() to advance
+            });
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
+                    prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
+                }
+                Log.e("SongPlayerDBG", "MediaPlayer error: what=" + what + ", extra=" + extra);
+
+                if (!retriedAfterTokenRefresh && extra == 403) {
+                    retriedAfterTokenRefresh = true;
+                    if (playlistNodes != null) {
+                        playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
+                    }
+                } else {
+                    retriedAfterTokenRefresh = false;
+                    stop();
+                    mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                        .setActions(getAvailableActions())
+                        .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
+                        .build());
+                    updateNotification();
+                    stopForeground(false);
+                    if (playbackListener != null) {
+                        playbackListener.onPlaybackError(currentIndex, playlist != null ? playlist.get(currentIndex) : null, what, extra);
+                    }
+                }
+                return true;
+            });
+            mediaPlayer.prepareAsync();
+        } catch (Exception e) {
+            Log.e("SongPlayerDBG", "playCurrent: Exception while setting data source", e);
+            if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
+                prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
+            }
+            stop();
+            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                .setActions(getAvailableActions())
+                .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
+                .build());
+            updateNotification();
+            stopForeground(false);
+        }
+
+        MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
+        if (albumArt != null) {
+            metaBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt);
+        }
+        mediaSession.setMetadata(metaBuilder.build());
     }
+
+
+    // --- PATCH END: Shuffle logic fix ---
 
     public void setPlaylistWithArt(List<String> urls, int index, boolean shuffle, boolean loop, Bitmap albumArt) {
         this.playlist = urls;
