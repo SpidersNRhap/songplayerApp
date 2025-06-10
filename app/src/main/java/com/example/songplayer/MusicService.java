@@ -17,6 +17,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 import android.app.Notification;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
 import androidx.core.app.NotificationCompat;
 import androidx.media.session.MediaButtonReceiver;
@@ -43,8 +45,8 @@ import okhttp3.Call;
 
 import java.io.File;
 
-
 public class MusicService extends Service {
+
     // Media and playback
     private MediaPlayer mediaPlayer;
     private List<String> playlist;
@@ -75,11 +77,18 @@ public class MusicService extends Service {
     private List<Integer> shuffleOrder = new ArrayList<>();
     private int shufflePointer = 0;
 
+    // Token management
+    private boolean retriedAfterTokenRefresh = false;
+    private long tokenFetchedAt = 0;
+    private static final long TOKEN_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
+
     private final IBinder binder = new LocalBinder();
 
     public class LocalBinder extends Binder {
         public MusicService getService() { return MusicService.this; }
     }
+
+    public String getToken() { return token; }
 
     @Override
     public IBinder onBind(Intent intent) { return binder; }
@@ -100,8 +109,8 @@ public class MusicService extends Service {
 
         SharedPreferences prefs = getSharedPreferences("music_service_prefs", MODE_PRIVATE);
         currentIndex = prefs.getInt("currentIndex", 0);
-        isShuffle = prefs.getBoolean("isShuffle", false); // <-- Add this
-        isLoop = prefs.getBoolean("isLoop", false);       // <-- Add this
+        isShuffle = prefs.getBoolean("isShuffle", false);
+        isLoop = prefs.getBoolean("isLoop", false);
         String playlistStr = prefs.getString("playlist", null);
         if (playlistStr != null) {
             playlist = java.util.Arrays.asList(playlistStr.split(";;"));
@@ -134,13 +143,77 @@ public class MusicService extends Service {
         super.onTaskRemoved(rootIntent);
     }
 
+    public interface TokenListener { void onTokenReady(); }
+    private TokenListener tokenListener;
 
+    public void setTokenListener(TokenListener listener) { this.tokenListener = listener; }
+    private void notifyTokenReady() { if (tokenListener != null) tokenListener.onTokenReady(); }
+
+    public void refreshToken() {
+        if (!isNetworkAvailable()) {
+            Log.e("SongPlayerDBG", "No network available, cannot refresh token");
+            return;
+        }
+        OkHttpClient client = getUnsafeOkHttpClient();
+        String tokenUrl = "https://" + publicIp + ":" + port + "/token?apiKey=" + apiKey;
+        Request request = new Request.Builder().url(tokenUrl).build();
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                Log.e("SongPlayerDBG", "refreshToken failed: " + e);
+            }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                String body = response.body() != null ? response.body().string() : "";
+                if (response.isSuccessful()) {
+                    try {
+                        JsonObject json = JsonParser.parseString(body).getAsJsonObject();
+                        token = json.get("token").getAsString();
+                        tokenFetchedAt = System.currentTimeMillis();
+                        Log.d("SongPlayerDBG", "Token refreshed: " + token);
+                        if (tokenListener != null) {
+                            new Handler(Looper.getMainLooper()).post(() -> tokenListener.onTokenReady());
+                        }
+                    } catch (Exception e) {
+                        Log.e("SongPlayerDBG", "Failed to parse token JSON", e);
+                    }
+                } else {
+                    Log.e("SongPlayerDBG", "refreshToken failed, code: " + response.code() + ", body: " + body);
+                }
+                response.close();
+            }
+        });
+    }
+
+    // Overload refreshToken to accept a listener
+    public void refreshToken(TokenListener listener) {
+        this.tokenListener = listener;
+        refreshToken();
+    }
+
+    // Helper to check if token is expired
+    private boolean isTokenExpired() {
+        return token == null || (System.currentTimeMillis() - tokenFetchedAt) > TOKEN_EXPIRY_MS;
+    }
+
+    // Helper to refresh token if needed, then run the action
+    private void refreshTokenAndThen(Runnable action) {
+        if (isTokenExpired()) {
+            refreshToken(new TokenListener() {
+                @Override
+                public void onTokenReady() {
+                    action.run();
+                }
+            });
+        } else {
+            action.run();
+        }
+    }
+
+    // Playlist and shuffle management
     public void setPlaylist(List<SongNode> nodes, int index, boolean shuffle, boolean loop) {
         this.playlistNodes = nodes;
         this.currentIndex = index;
         this.isShuffle = shuffle;
         this.isLoop = loop;
-        // Always rebuild playlist URLs when switching playlists
         if (token != null) {
             List<String> newUrls = new ArrayList<>();
             for (SongNode node : nodes) {
@@ -161,8 +234,8 @@ public class MusicService extends Service {
             Log.d("SongPlayerDBG", "setShuffle: generated shuffleOrder=" + shuffleOrder);
         }
         savePlaybackState();
-    }      
-    
+    }
+
     public void setLoop(boolean loop) { isLoop = loop; }
     public boolean isShuffle() { return isShuffle; }
     public boolean isLoop() { return isLoop; }
@@ -184,7 +257,7 @@ public class MusicService extends Service {
             newUrls.add(getStreamUrl(node.path, token));
         }
         this.playlist = newUrls;
-}
+    }
 
     private void showMediaNotification(boolean isPlaying, String title) {
         Bitmap albumArt = currentAlbumArt != null ? currentAlbumArt : defaultAlbumArt;
@@ -220,7 +293,6 @@ public class MusicService extends Service {
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_LOW);
 
-        // Set album art as large icon and background if available
         MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
         if (albumArt != null) {
@@ -256,14 +328,61 @@ public class MusicService extends Service {
         return title;
     }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnected();
+    }
+
+    public interface PlaybackListener {
+        void onPlaybackStarted();
+        void onPlaybackPaused();
+        void onTrackChanged(int newIndex, String songTitle, Bitmap albumArt);
+        void onPlaybackError(int index, String url, int what, int extra);
+    }
+
+    public OkHttpClient getUnsafeOkHttpClient() {
+        try {
+            javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[]{
+                new javax.net.ssl.X509TrustManager() {
+                    @Override public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                    @Override public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                    @Override public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[]{}; }
+                }
+            };
+
+            javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            javax.net.ssl.SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.sslSocketFactory(sslSocketFactory, (javax.net.ssl.X509TrustManager)trustAllCerts[0]);
+            builder.hostnameVerifier((hostname, session) -> true);
+
+            builder.connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
+            builder.readTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
+            builder.writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
+
+            return builder.build();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void playCurrent() {
+        Log.d("SongPlayerDBG", "playCurrent: currentIndex=" + currentIndex + ", playlist.size=" + (playlist != null ? playlist.size() : 0));
         stop();
         rebuildPlaylistUrlsWithCurrentToken();
-        if (playlist == null || playlist.isEmpty()) return;
+        if (playlist == null || playlist.isEmpty()) {
+            Log.d("SongPlayerDBG", "playCurrent: playlist is null or empty");
+            return;
+        }
         if (currentIndex < 0 || currentIndex >= playlist.size()) {
+            Log.d("SongPlayerDBG", "playCurrent: currentIndex out of bounds, resetting to 0");
             currentIndex = 0;
         }
         String url = playlist.get(currentIndex);
+        Log.d("SongPlayerDBG", "playCurrent: Playing URL: " + url);
         String title = extractSongTitle(url);
         Bitmap albumArt = getAlbumArt(url);
         currentAlbumArt = albumArt;
@@ -272,7 +391,6 @@ public class MusicService extends Service {
         try {
             mediaPlayer.setDataSource(url);
 
-            // Timeout logic
             if (prepareTimeoutHandler == null) {
                 prepareTimeoutHandler = new Handler(getMainLooper());
             }
@@ -317,7 +435,7 @@ public class MusicService extends Service {
                 int next = getNextIndex();
                 if (next != -1) {
                     currentIndex = next;
-                    playCurrent();
+                    playCurrentWithFreshToken();
                 } else {
                     stop();
                     mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
@@ -325,8 +443,8 @@ public class MusicService extends Service {
                         .setState(PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1.0f)
                         .build());
                     updateNotification();
-                    stopForeground(true); // Remove notification
-                    stopSelf();           // Stop the service
+                    stopForeground(true);
+                    stopSelf();
                 }
             });
             mediaPlayer.setOnErrorListener((mp, what, extra) -> {
@@ -334,20 +452,30 @@ public class MusicService extends Service {
                     prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
                 }
                 Log.e("SongPlayerDBG", "MediaPlayer error: what=" + what + ", extra=" + extra);
-                if (playbackListener != null) {
-                    playbackListener.onPlaybackError(currentIndex, playlist != null ? playlist.get(currentIndex) : null, what, extra);
+
+                if (!retriedAfterTokenRefresh && extra == 403) {
+                    retriedAfterTokenRefresh = true;
+                    if (playlistNodes != null) {
+                        playSongWithFreshToken(currentIndex, playlistNodes, isShuffle, isLoop);
+                    }
+                } else {
+                    retriedAfterTokenRefresh = false;
+                    stop();
+                    mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                        .setActions(getAvailableActions())
+                        .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
+                        .build());
+                    updateNotification();
+                    stopForeground(false);
+                    if (playbackListener != null) {
+                        playbackListener.onPlaybackError(currentIndex, playlist != null ? playlist.get(currentIndex) : null, what, extra);
+                    }
                 }
-                stop();
-                mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
-                    .setActions(getAvailableActions())
-                    .setState(PlaybackStateCompat.STATE_ERROR, 0, 1.0f)
-                    .build());
-                updateNotification();
-                stopForeground(false);
                 return true;
             });
             mediaPlayer.prepareAsync();
         } catch (Exception e) {
+            Log.e("SongPlayerDBG", "playCurrent: Exception while setting data source", e);
             if (prepareTimeoutHandler != null && prepareTimeoutRunnable != null) {
                 prepareTimeoutHandler.removeCallbacks(prepareTimeoutRunnable);
             }
@@ -360,7 +488,6 @@ public class MusicService extends Service {
             stopForeground(false);
         }
 
-        // Set metadata with albumArt
         MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
         if (albumArt != null) {
@@ -369,12 +496,15 @@ public class MusicService extends Service {
         mediaSession.setMetadata(metaBuilder.build());
     }
 
+    private void playCurrentWithFreshToken() {
+        refreshTokenAndThen(this::playCurrent);
+    }
+
     private void generateShuffleOrder(int startIndex) {
         shuffleOrder.clear();
         int size = playlist != null ? playlist.size() : 0;
         for (int i = 0; i < size; i++) shuffleOrder.add(i);
         Collections.shuffle(shuffleOrder, random);
-        // Move the current song to the start
         if (startIndex >= 0 && startIndex < shuffleOrder.size()) {
             int idx = shuffleOrder.indexOf(startIndex);
             if (idx != 0) {
@@ -392,7 +522,6 @@ public class MusicService extends Service {
             if (shufflePointer < shuffleOrder.size() - 1) {
                 return shuffleOrder.get(shufflePointer + 1);
             } else if (isLoop && !shuffleOrder.isEmpty()) {
-                // Wrap to the start of the shuffle order
                 return shuffleOrder.get(0);
             }
             return -1;
@@ -408,15 +537,13 @@ public class MusicService extends Service {
         if (playlist == null || playlist.isEmpty()) return -1;
         if (isShuffle) {
             if (shuffleOrder.isEmpty()) {
-                    generateShuffleOrder(currentIndex);
-            } // Prevent crash if empty
+                generateShuffleOrder(currentIndex);
+            }
             if (shufflePointer > 0) {
                 return shuffleOrder.get(shufflePointer - 1);
             } else if (isLoop && !shuffleOrder.isEmpty()) {
-                // Wrap to last song in shuffle order
                 return shuffleOrder.get(shuffleOrder.size() - 1);
             } else {
-                // At the start and not looping: stay on the current song
                 return shuffleOrder.get(shufflePointer);
             }
         } else if (currentIndex > 0) {
@@ -424,7 +551,7 @@ public class MusicService extends Service {
         } else if (isLoop) {
             return playlist.size() - 1;
         }
-        return currentIndex; // At the start, just restart current song
+        return currentIndex;
     }
 
     public void play() {
@@ -569,7 +696,7 @@ public class MusicService extends Service {
         this.currentAlbumArt = albumArt;
         if (isShuffle) generateShuffleOrder(index);
         savePlaybackState();
-        playCurrent();
+        playCurrentWithFreshToken();
     }
 
     public void updateNotificationArt(Bitmap albumArt) {
@@ -584,12 +711,13 @@ public class MusicService extends Service {
         if (playlist != null) {
             editor.putString("playlist", android.text.TextUtils.join(";;", playlist));
         }
-        editor.putBoolean("isShuffle", isShuffle); // <-- Add this
-        editor.putBoolean("isLoop", isLoop);       // <-- Add this
+        editor.putBoolean("isShuffle", isShuffle);
+        editor.putBoolean("isLoop", isLoop);
         editor.apply();
     }
 
     public void setServerConfig(String publicIp, String port, String apiKey) {
+        Log.d("SongPlayerDBG", "setServerConfig: publicIp=" + publicIp + ", port=" + port + ", apiKey=" + apiKey);
         this.publicIp = publicIp;
         this.port = port;
         this.apiKey = apiKey;
@@ -597,29 +725,42 @@ public class MusicService extends Service {
 
     // Fetch token and play song at index
     public void playSongWithFreshToken(int songIndex, List<SongNode> playlistNodes, boolean shuffle, boolean loop) {
+        Log.d("SongPlayerDBG", "playSongWithFreshToken: songIndex=" + songIndex + ", playlistNodes.size=" + (playlistNodes != null ? playlistNodes.size() : 0));
         OkHttpClient client = getUnsafeOkHttpClient();
         String tokenUrl = "https://" + publicIp + ":" + port + "/token?apiKey=" + apiKey;
+        Log.d("SongPlayerDBG", "Requesting token from: " + tokenUrl);
         Request request = new Request.Builder().url(tokenUrl).build();
         client.newCall(request).enqueue(new okhttp3.Callback() {
-            @Override public void onFailure(Call call, IOException e) { }
+            @Override public void onFailure(Call call, IOException e) {
+                Log.e("SongPlayerDBG", "playSongWithFreshToken failed: " + e);
+            }
             @Override public void onResponse(Call call, Response response) throws IOException {
                 String body = response.body() != null ? response.body().string() : "";
+                Log.d("SongPlayerDBG", "Token response code: " + response.code() + ", body: " + body);
                 if (response.isSuccessful()) {
                     try {
                         JsonObject json = JsonParser.parseString(body).getAsJsonObject();
                         token = json.get("token").getAsString();
+                        Log.d("SongPlayerDBG", "Token refreshed (playSongWithFreshToken): " + token);
                         List<String> playlistUrls = new ArrayList<>();
                         for (SongNode node : playlistNodes) {
                             String url = getStreamUrl(node.path, token);
+                            Log.d("SongPlayerDBG", "Built stream URL: " + url);
                             playlistUrls.add(url);
                         }
                         new Handler(Looper.getMainLooper()).post(() -> {
                             MusicService.this.playlist = playlistUrls;
                             MusicService.this.currentIndex = songIndex;
-                            playCurrent();
+                            Log.d("SongPlayerDBG", "Playlist updated, currentIndex=" + songIndex + ", playlist.size=" + playlistUrls.size());
+                            playCurrentWithFreshToken();
                         });
-                    } catch (Exception ignored) {}
+                    } catch (Exception e) {
+                        Log.e("SongPlayerDBG", "Failed to parse token JSON (playSongWithFreshToken)", e);
+                    }
+                } else {
+                    Log.e("SongPlayerDBG", "playSongWithFreshToken failed, code: " + response.code() + ", body: " + body);
                 }
+                response.close();
             }
         });
     }
@@ -628,67 +769,24 @@ public class MusicService extends Service {
     private String getStreamUrl(String songPath, String token) {
         try {
             int lastSlash = songPath.lastIndexOf('/');
+            String url;
             if (lastSlash != -1) {
                 String folder = URLEncoder.encode(songPath.substring(0, lastSlash), "UTF-8").replace("+", "%20");
                 String filename = URLEncoder.encode(songPath.substring(lastSlash + 1), "UTF-8").replace("+", "%20");
-                return "https://" + publicIp + ":" + port + "/stream/" + folder + "/" + filename + "?token=" + token;
+                url = "https://" + publicIp + ":" + port + "/stream/" + folder + "/" + filename + "?token=" + token;
             } else {
                 String filename = URLEncoder.encode(songPath, "UTF-8").replace("+", "%20");
-                return "https://" + publicIp + ":" + port + "/stream/" + filename + "?token=" + token;
+                url = "https://" + publicIp + ":" + port + "/stream/" + filename + "?token=" + token;
             }
+            Log.d("SongPlayerDBG", "getStreamUrl: " + url);
+            return url;
         } catch (Exception e) {
+            Log.e("SongPlayerDBG", "getStreamUrl error for path: " + songPath, e);
             return "";
         }
     }
 
-    public OkHttpClient getUnsafeOkHttpClient() {
-        try {
-            javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[]{
-                new javax.net.ssl.X509TrustManager() {
-                    @Override public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
-                    @Override public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
-                    @Override public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[]{}; }
-                }
-            };
-
-            javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("SSL");
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-            javax.net.ssl.SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-            OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            builder.sslSocketFactory(sslSocketFactory, (javax.net.ssl.X509TrustManager)trustAllCerts[0]);
-            builder.hostnameVerifier((hostname, session) -> true);
-
-            builder.connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
-            builder.readTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
-            builder.writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
-
-            return builder.build();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public interface PlaybackListener {
-        void onPlaybackStarted();
-        void onPlaybackPaused();
-        void onTrackChanged(int newIndex, String songTitle, Bitmap albumArt);
-        void onPlaybackError(int index, String url, int what, int extra);
-    }
-
-    @Override
-    public void onDestroy() {
-        stop();
-        if (mediaSession != null) {
-            mediaSession.release();
-        }
-        albumArtCache.clear();
-        stopForeground(true); // <-- This removes the notification
-        super.onDestroy();
-    }
-
     private Bitmap getAlbumArt(String url) {
-        // Check cache first
         if (albumArtCache.containsKey(url)) {
             return albumArtCache.get(url);
         }
@@ -705,19 +803,19 @@ public class MusicService extends Service {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inPreferredConfig = Bitmap.Config.ARGB_8888;
                 Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length, options);
-                albumArtCache.put(url, bitmap); // Cache it
+                albumArtCache.put(url, bitmap);
                 return bitmap;
             }
         } catch (Exception e) {
             Log.e("SongPlayerDBG", "Metadata error for: " + url, e);
         }
-        albumArtCache.put(url, null); // Cache miss as null to avoid repeated attempts
+        albumArtCache.put(url, null);
         return null;
     }
+
     private Bitmap getAlbumArtFromRemote(String url) {
         File tempFile = null;
         try {
-            // Download the first 128KB (should be enough for metadata)
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder()
                 .url(url)
@@ -750,6 +848,7 @@ public class MusicService extends Service {
         }
         return null;
     }
+
     private SongMetadata getSongMetadataFromRemote(String url) {
         File tempFile = null;
         try {
@@ -785,7 +884,6 @@ public class MusicService extends Service {
         return null;
     }
 
-    // Helper class
     public static class SongMetadata {
         public final String title, artist, album;
         public final byte[] art;

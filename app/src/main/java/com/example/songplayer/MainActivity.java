@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar progressBar;
 
     // Data & State
-    private String publicIp, port, apiKey, token;
+    private String publicIp, port, apiKey;
     private List<SongNode> currentNodes = new ArrayList<>();
     private List<SongNode> currentPlaylist = new ArrayList<>();
     private List<SongNode> allSongNodes = new ArrayList<>();
@@ -86,6 +86,12 @@ public class MainActivity extends AppCompatActivity {
             musicService = binder.getService();
             musicService.setServerConfig(publicIp, port, apiKey);
             serviceBound = true;
+            musicService.setTokenListener(() -> runOnUiThread(() -> {
+                fetchSongTree();
+                fetchPlaylists();
+            }));
+            musicService.refreshToken();
+
             musicService.setPlaybackListener(new MusicService.PlaybackListener() {
                 @Override
                 public void onPlaybackStarted() {
@@ -104,12 +110,10 @@ public class MainActivity extends AppCompatActivity {
                         songTitle.setText(extractSongTitle(newsongTitle));
                         progressBar.setProgress(0);
                         progressBar.setMax(musicService.getDuration());
-                        // Only update metadata text here
                         if (currentPlaylist != null && newIndex >= 0 && newIndex < currentPlaylist.size()) {
                             String songPath = currentPlaylist.get(newIndex).path;
                             showSongMetadata(buildStreamUrl(songPath));
                         }
-                        // Set background image
                         ImageView backgroundImage = findViewById(R.id.backgroundImage);
                         if (albumArt != null) {
                             backgroundImage.setImageBitmap(albumArt);
@@ -272,7 +276,6 @@ public class MainActivity extends AppCompatActivity {
         // Start service and fetch data
         Intent intent = new Intent(this, MusicService.class);
         startService(intent);
-        fetchTokenAndThenSongs();
     }
 
     @Override
@@ -284,7 +287,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -292,8 +294,6 @@ public class MainActivity extends AppCompatActivity {
             unbindService(serviceConnection);
             serviceBound = false;
         }
-        // Explicitly stop the service
-        // stopService(new Intent(this, MusicService.class));
     }
 
     @Override
@@ -396,7 +396,7 @@ public class MainActivity extends AppCompatActivity {
     // --- Metadata and Playlist Fetching ---
     private String buildStreamUrl(String songPath) {
         if (!songPath.startsWith("/")) songPath = "/" + songPath;
-        return "https://" + publicIp + ":" + port + "/stream" + songPath + "?token=" + token;
+        return "https://" + publicIp + ":" + port + "/stream" + songPath + "?token=" + (musicService != null ? musicService.getToken() : "");
     }
 
     private void showSongMetadata(String url) {
@@ -422,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("SongPlayerDBG", "Content-Type: " + response.header("Content-Type"));
                 if (response.code() == 403) {
                     Log.d("SongPlayerDBG", "Token is stale or expired during metadata fetch. Fetching a new token.");
-                    runOnUiThread(this::fetchTokenAndThenSongs);
+                    if (musicService != null) musicService.refreshToken();
                     return;
                 }
                 if (!response.isSuccessful()) {
@@ -509,7 +509,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         String body = response.body().string();
                         JsonObject json = JsonParser.parseString(body).getAsJsonObject();
-                        token = json.get("token").getAsString();
+                        // token = json.get("token").getAsString();
                         runOnUiThread(() -> {
                             fetchSongTree();
                             fetchPlaylists();
@@ -522,7 +522,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchSongTree() {
         OkHttpClient client = getUnsafeOkHttpClient();
-        String url = "https://" + publicIp + ":" + port + "/songs?token=" + token;
+        String url = "https://" + publicIp + ":" + port + "/songs?token=" + (musicService != null ? musicService.getToken() : "");
         Request request = new Request.Builder().url(url).build();
         client.newCall(request).enqueue(new okhttp3.Callback() {
             @Override public void onFailure(Call call, IOException e) {}
@@ -539,15 +539,14 @@ public class MainActivity extends AppCompatActivity {
                     });
                 } else if (response.code() == 403) {
                     Log.d("SongPlayerDBG", "Token is stale or expired. Fetching a new token.");
-                    runOnUiThread(() -> fetchTokenAndThenSongs());
-                }
+                    if (musicService != null) musicService.refreshToken();                }
             }
         });
     }
 
     private void fetchPlaylists() {
         OkHttpClient client = getUnsafeOkHttpClient();
-        String url = "https://" + publicIp + ":" + port + "/playlists?token=" + token;
+        String url = "https://" + publicIp + ":" + port + "/playlists?token=" + (musicService != null ? musicService.getToken() : "");
         Request request = new Request.Builder().url(url).build();
         client.newCall(request).enqueue(new okhttp3.Callback() {
             @Override public void onFailure(Call call, IOException e) {}
