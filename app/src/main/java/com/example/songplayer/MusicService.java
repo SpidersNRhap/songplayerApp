@@ -154,7 +154,7 @@ public class MusicService extends Service {
             Log.e("SongPlayerDBG", "No network available, cannot refresh token");
             return;
         }
-        OkHttpClient client = getUnsafeOkHttpClient();
+        OkHttpClient client = HttpClientProvider.getClient();
         String tokenUrl = "https://" + publicIp + ":" + port + "/token?apiKey=" + apiKey;
         Request request = new Request.Builder().url(tokenUrl).build();
         client.newCall(request).enqueue(new okhttp3.Callback() {
@@ -726,7 +726,7 @@ public class MusicService extends Service {
     // Fetch token and play song at index
     public void playSongWithFreshToken(int songIndex, List<SongNode> playlistNodes, boolean shuffle, boolean loop) {
         Log.d("SongPlayerDBG", "playSongWithFreshToken: songIndex=" + songIndex + ", playlistNodes.size=" + (playlistNodes != null ? playlistNodes.size() : 0));
-        OkHttpClient client = getUnsafeOkHttpClient();
+        OkHttpClient client = HttpClientProvider.getClient();
         String tokenUrl = "https://" + publicIp + ":" + port + "/token?apiKey=" + apiKey;
         Log.d("SongPlayerDBG", "Requesting token from: " + tokenUrl);
         Request request = new Request.Builder().url(tokenUrl).build();

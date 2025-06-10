@@ -410,7 +410,7 @@ public class MainActivity extends AppCompatActivity {
         currentMetadataTask = backgroundExecutor.submit(() -> {
             File tempFile = null;
             try {
-                OkHttpClient client = getUnsafeOkHttpClient();
+                OkHttpClient client = HttpClientProvider.getClient();
                 // Try partial download first
                 Request request = new Request.Builder()
                     .url(url)
@@ -498,30 +498,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void fetchTokenAndThenSongs() {
-        OkHttpClient client = getUnsafeOkHttpClient();
-        String tokenUrl = "https://" + publicIp + ":" + port + "/token?apiKey=" + apiKey;
-        Request request = new Request.Builder().url(tokenUrl).build();
-        client.newCall(request).enqueue(new okhttp3.Callback() {
-            @Override public void onFailure(Call call, IOException e) {}
-            @Override public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        String body = response.body().string();
-                        JsonObject json = JsonParser.parseString(body).getAsJsonObject();
-                        // token = json.get("token").getAsString();
-                        runOnUiThread(() -> {
-                            fetchSongTree();
-                            fetchPlaylists();
-                        });
-                    } catch (Exception e) {}
-                }
-            }
-        });
-    }
-
     private void fetchSongTree() {
-        OkHttpClient client = getUnsafeOkHttpClient();
+        OkHttpClient client = HttpClientProvider.getClient();
         String url = "https://" + publicIp + ":" + port + "/songs?token=" + (musicService != null ? musicService.getToken() : "");
         Request request = new Request.Builder().url(url).build();
         client.newCall(request).enqueue(new okhttp3.Callback() {
@@ -545,7 +523,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchPlaylists() {
-        OkHttpClient client = getUnsafeOkHttpClient();
+        OkHttpClient client = HttpClientProvider.getClient();
         String url = "https://" + publicIp + ":" + port + "/playlists?token=" + (musicService != null ? musicService.getToken() : "");
         Request request = new Request.Builder().url(url).build();
         client.newCall(request).enqueue(new okhttp3.Callback() {
@@ -746,28 +724,4 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // --- Networking ---
-
-    public OkHttpClient getUnsafeOkHttpClient() {
-        try {
-            TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    @Override public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {}
-                    @Override public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {}
-                    @Override public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[]{}; }
-                }
-            };
-            SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-            OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            builder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0]);
-            builder.hostnameVerifier((hostname, session) -> true);
-            builder.connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
-            builder.readTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
-            builder.writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS);
-            return builder.build();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
