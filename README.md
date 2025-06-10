@@ -1,12 +1,16 @@
 # SongPlayer Mobile Application
 
 ## Overview
-SongPlayer is a mobile application that allows users to access and stream songs hosted on a server. The app fetches a token from the server and uses it to construct URLs for streaming songs.
+Personal android app to act as the client to my https music streaming server found at [bocchibot/songserver](https://github.com/SpidersNRhap/bocchibot).
 
 ## Features
-- Fetches authentication token from the server.
-- Streams songs using the provided URL format.
-- User-friendly interface for browsing and playing songs.
+- Secure token-based authentication with your music server
+- Stream songs directly from your server
+- Browse folders and playlists
+- Shuffle and loop playback modes
+- Displays song metadata and album art
+- Persistent playback state across app restarts
+- Modern Android UI
 
 ## Project Structure
 ```
@@ -14,38 +18,26 @@ songplayer
 ├── app
 │   ├── src
 │   │   ├── main
-│   │   │   ├── java
-│   │   │   │   └── com
-│   │   │   │       └── example
-│   │   │   │           └── songplayer
-│   │   │   │               └── MainActivity.java
-│   │   │   └── res
-│   │   │       ├── layout
-│   │   │       │   └── activity_main.xml
-│   │   │       └── values
-│   │   │           └── strings.xml
+│   │   │   ├── java/com/example/songplayer/
+│   │   │   │   ├── MainActivity.java
+│   │   │   │   ├── MusicService.java
+│   │   │   │   ├── HttpClientProvider.java
+│   │   │   │   └── ... (other adapters and models)
+│   │   │   └── res/
+│   │   │       ├── layout/
+│   │   │       └── values/
 │   │   └── AndroidManifest.xml
-├── .env
+├── .env                # Not committed, holds secrets
+├── .gitignore
 ├── build.gradle
 ├── settings.gradle
 └── README.md
 ```
+``
 
-## Setup Instructions
-1. Clone the repository to your local machine.
-2. Create a `.env` file in the root directory with the following variables:
+**`.env` file format**
    ```
-   PUBLIC_IP=your.public.ip.or.domain
+   PUBLIC_IP=server.domain
    PORT=3000
    API_KEY=your_super_secret_key
    ```
-3. Open the project in Android Studio.
-4. Build and run the application on an Android device or emulator.
-
-## Usage
-- Launch the application.
-- The app will automatically fetch the token and display the available songs.
-- Select a song to start streaming.
-
-## Contributing
-Feel free to submit issues or pull requests for improvements and bug fixes.
