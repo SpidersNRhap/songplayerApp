@@ -1,7 +1,7 @@
 # SongPlayer Mobile Application
 
 ## Overview
-Personal android app to act as the client to my https music streaming server found at [bocchibot/songserver](https://github.com/SpidersNRhap/bocchibot).
+Personal android app to act as the client to my https music streaming server found at ([https://github.com/SpidersNRhap/bocchibot](https://github.com/SpidersNRhap/bocchiBot/tree/main/mp3-uploader/src)).
 
 ## Features
 - Secure token-based authentication with your music server
